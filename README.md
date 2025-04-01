@@ -1,2 +1,5 @@
 # cosmos-ui
-UI for the Cosmos Platform
+
+UI of the Cosmos Platform
+
+Run with `bun dev`
