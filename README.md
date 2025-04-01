@@ -1,4 +1,4 @@
-# CosmosUI
+# cosmos-ui
 
 UI of the Cosmos Platform
 
