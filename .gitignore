@@ -1,28 +1,9 @@
-/node_modules
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
 .DS_Store
-*.pem
+/node_modules/
 
-# debug
-npm-debug.log*
+# React Router
+/.react-router/
+/build/
 
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Vercel
+/.vercel/
