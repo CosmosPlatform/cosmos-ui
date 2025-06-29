@@ -17,7 +17,7 @@ export const authenticateAdmin = async (
 ): Promise<AuthenticateAdminResponse> => {
   return sendRequest<AuthenticateAdminRequest, AuthenticateAdminResponse>(
     "POST",
-    "/admin/authenticate",
+    "/auth/login",
     values,
   );
 };

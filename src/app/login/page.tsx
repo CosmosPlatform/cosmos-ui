@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { LoginForm } from "@/components/loginForm";
-import { authenticateAdmin } from "@/lib/api/auth/adminAuth";
+import { authenticateAdmin } from "@/lib/api/auth/auth";
 
 export const metadata: Metadata = {
   title: "Admin Login",
