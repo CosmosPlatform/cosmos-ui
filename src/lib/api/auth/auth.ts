@@ -1,21 +1,25 @@
-"use server";
-
 import { sendRequest } from "@/lib/api/cosmosServerClient";
 
-type AuthenticateAdminRequest = {
+type AuthenticateUserRequest = {
   email: string;
   password: string;
 };
 
-type AuthenticateAdminResponse = {
-  success: boolean;
-  error?: string;
+export type AuthenticateUserResponse = {
+  token: string;
+  user: User;
 };
 
-export const authenticateAdmin = async (
-  values: AuthenticateAdminRequest,
-): Promise<AuthenticateAdminResponse> => {
-  return sendRequest<AuthenticateAdminRequest, AuthenticateAdminResponse>(
+type User = {
+  username: string;
+  email: string;
+  role: string;
+};
+
+export const authenticateUser = async (
+  values: AuthenticateUserRequest,
+): Promise<AuthenticateUserResponse> => {
+  return sendRequest<AuthenticateUserRequest, AuthenticateUserResponse>(
     "POST",
     "/auth/login",
     values,

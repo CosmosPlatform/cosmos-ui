@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { LoginForm } from "@/components/loginForm";
-import { authenticateAdmin } from "@/lib/api/auth/auth";
 
 export const metadata: Metadata = {
   title: "Admin Login",
@@ -49,7 +48,7 @@ export default function AdminLoginPage() {
               Enter your credentials to access the admin dashboard
             </p>
           </div>
-          <LoginForm authenticate={authenticateAdmin} />
+          <LoginForm/>
           <p className="text-muted-foreground px-8 text-center text-sm">
             By logging in, you agree to our{" "}
             <Link

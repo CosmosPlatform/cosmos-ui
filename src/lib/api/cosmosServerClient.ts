@@ -27,10 +27,35 @@ const sendRequest = async <TRequest extends object, TResponse>(
   const response = await fetch(url, options);
 
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    let errorResponse: ApiErrorResponse;
+
+    try {
+      errorResponse = await response.json();
+    } catch (e) {
+      errorResponse = { error: `An unexpected error occurred: ${e}` };
+    }
+
+    throw new ApiError(response.status, errorResponse);
   }
 
   return response.json() as Promise<TResponse>;
 };
 
-export { sendRequest };
+// Generic error response structure matching your Go backend
+interface ApiErrorResponse {
+  error: string;
+  details?: string[];
+}
+
+// Custom error class for API errors
+class ApiError extends Error {
+  constructor(
+    public status: number,
+    public errorResponse: ApiErrorResponse,
+  ) {
+    super(errorResponse.error);
+    this.name = "ApiError";
+  }
+}
+
+export { sendRequest, ApiError };

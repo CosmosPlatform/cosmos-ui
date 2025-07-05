@@ -16,6 +16,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { ApiError } from "@/lib/api/cosmosServerClient";
+import { authenticateUser } from "@/lib/api/auth/auth";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -24,13 +26,7 @@ const formSchema = z.object({
   }),
 });
 
-type LoginFormProps = {
-  authenticate: (
-    values: z.infer<typeof formSchema>,
-  ) => Promise<{ success: boolean; error?: string }>;
-};
-
-export function LoginForm({ authenticate }: LoginFormProps) {
+export function LoginForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,15 +44,24 @@ export function LoginForm({ authenticate }: LoginFormProps) {
     setError(null);
 
     try {
-      const result = await authenticate(values);
-
-      if (result.success) {
-        router.push("/admin/dashboard");
-      } else {
-        setError(result.error || "Authentication failed");
-      }
+      const result = await authenticateUser(values);
+      // Put the authentication token in local storage or context
+      console.log("Authentication successful:", result);
+      router.push("/login/dashboard");
     } catch (error) {
-      setError("An unexpected error occurred: " + (error as Error).message);
+      console.log("Authentication error:", error);
+      if (error instanceof ApiError) {
+        let apiError = error as ApiError;
+        if (apiError.status === 401) {
+          setError("Invalid email or password");
+        } else {
+          setError("Internal server error. Please try again later.");
+        }
+      } else {
+        setError(
+          "An error occurred during authentication. Please try again later.",
+        );
+      }
     } finally {
       setIsLoading(false);
     }
