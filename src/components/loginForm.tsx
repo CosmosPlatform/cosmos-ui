@@ -45,9 +45,10 @@ export function LoginForm() {
 
     try {
       const result = await authenticateUser(values);
-      // Put the authentication token in local storage or context
       console.log("Authentication successful:", result);
-      router.push("/login/dashboard");
+      localStorage.setItem("token", result.token);
+      localStorage.setItem("user", JSON.stringify(result.user));
+      router.push("/");
     } catch (error) {
       console.log("Authentication error:", error);
       if (error instanceof ApiError) {
