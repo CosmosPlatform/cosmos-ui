@@ -4,11 +4,11 @@ import Link from "next/link";
 import { LoginForm } from "@/components/loginForm";
 
 export const metadata: Metadata = {
-  title: "Admin Login",
-  description: "Login to access the admin dashboard",
+  title: "Login",
+  description: "Login to access your account",
 };
 
-export default function AdminLoginPage() {
+export default function LoginPage() {
   return (
     <div className="relative flex h-screen w-full flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
       <div className="bg-muted relative hidden h-full flex-col p-10 text-white lg:flex dark:border-r">
@@ -26,29 +26,18 @@ export default function AdminLoginPage() {
           >
             <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
           </svg>
-          Your Company
-        </div>
-        <div className="relative z-20 mt-auto">
-          <blockquote className="space-y-2">
-            <p className="text-lg">
-              &quot;This admin dashboard has streamlined our workflow and
-              improved our team&apos;s productivity significantly.&quot;
-            </p>
-            <footer className="text-sm">Sofia Davis</footer>
-          </blockquote>
+          Cosmos
         </div>
       </div>
       <div className="lg:p-8">
         <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
           <div className="flex flex-col space-y-2 text-center">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Admin Login
-            </h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Login</h1>
             <p className="text-muted-foreground text-sm">
-              Enter your credentials to access the admin dashboard
+              Enter your credentials to access your account
             </p>
           </div>
-          <LoginForm/>
+          <LoginForm />
           <p className="text-muted-foreground px-8 text-center text-sm">
             By logging in, you agree to our{" "}
             <Link
