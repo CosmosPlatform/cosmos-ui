@@ -1,4 +1,4 @@
-"use server";
+"use client";
 
 import { serverConfig } from "@/config/serverConfig";
 
@@ -7,11 +7,15 @@ import { serverConfig } from "@/config/serverConfig";
 // Method should be a valid HTTP method (GET, POST, PUT, DELETE)
 // Path should be the endpoint of the server
 // Body should be the request body, if applicable
+type ApiResult<T> =
+  | { data: T; error?: undefined }
+  | { data?: undefined; error: ApiErrorResponse };
+
 const sendRequest = async <TRequest extends object, TResponse>(
   method: string,
   path: string,
   body?: TRequest,
-): Promise<TResponse> => {
+): Promise<ApiResult<TResponse>> => {
   const url = `${serverConfig.serverUrl}${path}`;
   const headers = {
     "Content-Type": "application/json",
@@ -34,30 +38,25 @@ const sendRequest = async <TRequest extends object, TResponse>(
     try {
       errorResponse = await response.json();
     } catch (e) {
-      errorResponse = { error: `An unexpected error occurred: ${e}` };
+      errorResponse = {
+        error: `An unexpected error occurred: ${e}`,
+        status: response.status,
+      };
     }
 
-    throw new ApiError(response.status, errorResponse);
+    return { error: { ...errorResponse, status: response.status } };
   }
 
-  return response.json() as Promise<TResponse>;
+  const data = await response.json();
+  return { data };
 };
 
 // Generic error response structure matching your Go backend
 interface ApiErrorResponse {
   error: string;
   details?: string[];
+  status: number;
 }
 
-// Custom error class for API errors
-class ApiError extends Error {
-  constructor(
-    public status: number,
-    public errorResponse: ApiErrorResponse,
-  ) {
-    super(errorResponse.error);
-    this.name = "ApiError";
-  }
-}
-
-export { sendRequest, ApiError };
+export { sendRequest };
+export type { ApiResult };

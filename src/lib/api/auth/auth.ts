@@ -1,4 +1,4 @@
-import { sendRequest } from "@/lib/api/cosmosServerClient";
+import { ApiResult, sendRequest } from "@/lib/api/cosmosServerClient";
 
 type AuthenticateUserRequest = {
   email: string;
@@ -18,7 +18,7 @@ type User = {
 
 export const authenticateUser = async (
   values: AuthenticateUserRequest,
-): Promise<AuthenticateUserResponse> => {
+): Promise<ApiResult<AuthenticateUserResponse>> => {
   return sendRequest<AuthenticateUserRequest, AuthenticateUserResponse>(
     "POST",
     "/auth/login",

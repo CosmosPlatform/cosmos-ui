@@ -5,5 +5,5 @@ const serverConfigSchema = z.object({
 });
 
 export const serverConfig = serverConfigSchema.parse({
-  serverUrl: process.env.SERVER_URL,
+  serverUrl: process.env.NEXT_PUBLIC_SERVER_URL,
 });

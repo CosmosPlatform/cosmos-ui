@@ -16,7 +16,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { ApiError } from "@/lib/api/cosmosServerClient";
 import { authenticateUser } from "@/lib/api/auth/auth";
 
 const formSchema = z.object({
@@ -43,27 +42,22 @@ export function LoginForm() {
     setIsLoading(true);
     setError(null);
 
-    try {
-      const result = await authenticateUser(values);
-      console.log("Authentication successful:", result);
-      localStorage.setItem("token", result.token);
-      localStorage.setItem("user", JSON.stringify(result.user));
+    const result = await authenticateUser(values);
+    if (result.data) {
+      console.log("Authentication successful:", result.data);
+      localStorage.setItem("user", JSON.stringify(result.data.user));
+      localStorage.setItem("token", result.data.token);
       router.push("/");
-    } catch (error) {
-      console.log("Authentication error:", error);
-      if (error instanceof ApiError) {
-        let apiError = error as ApiError;
-        if (apiError.status === 401) {
-          setError("Invalid email or password");
-        } else {
-          setError("Internal server error. Please try again later.");
-        }
+    } else if (result.error) {
+      console.log("Authentication error:", result.error);
+      if (result.error.status === 401) {
+        setError("Invalid email or password");
       } else {
-        setError(
-          "An error occurred during authentication. Please try again later.",
-        );
+        setError("Internal server error. Please try again later.");
       }
-    } finally {
+      setIsLoading(false);
+    } else {
+      setError("An unknown error occurred. Please try again later.");
       setIsLoading(false);
     }
   }
