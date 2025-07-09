@@ -1,4 +1,3 @@
-import RootLayout from "@/app/layout";
 import RegularAuthGuard from "@/components/auth/authGuard";
 
 export default function ProtectedLayout({
@@ -6,9 +5,5 @@ export default function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <RootLayout>
-      <RegularAuthGuard>{children}</RegularAuthGuard>
-    </RootLayout>
-  );
+  return <RegularAuthGuard>{children}</RegularAuthGuard>;
 }

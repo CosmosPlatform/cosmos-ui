@@ -1,4 +1,3 @@
-import ProtectedLayout from "@/app/(protected)/layout";
 import { AdminAuthGuard } from "@/components/auth/authGuard";
 
 export default function AdminLayout({
@@ -6,9 +5,5 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <ProtectedLayout>
-      <AdminAuthGuard>{children}</AdminAuthGuard>
-    </ProtectedLayout>
-  );
+  return <AdminAuthGuard>{children}</AdminAuthGuard>;
 }
