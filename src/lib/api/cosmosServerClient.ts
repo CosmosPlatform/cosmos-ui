@@ -1,4 +1,6 @@
-const serverBaseURL = process.env.SERVER_URL || "http://localhost:8080";
+"use server";
+
+import { serverConfig } from "@/config/serverConfig";
 
 // Function to send a request to the Cosmos server
 // This function is generic and can be used for any request type and any type of answer.
@@ -10,7 +12,7 @@ const sendRequest = async <TRequest extends object, TResponse>(
   path: string,
   body?: TRequest,
 ): Promise<TResponse> => {
-  const url = `${serverBaseURL}${path}`;
+  const url = `${serverConfig.serverUrl}${path}`;
   const headers = {
     "Content-Type": "application/json",
   };
