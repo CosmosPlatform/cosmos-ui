@@ -7,9 +7,6 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminDashboardPage() {
-  // Check if user is authenticated
-  //await checkAuth()
-
   return (
     <div className="container mx-auto py-10">
       <h1 className="mb-6 text-3xl font-bold">Admin Dashboard</h1>
