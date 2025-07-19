@@ -1,3 +1,5 @@
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/sidebar/appSidebar";
 import RegularAuthGuard from "@/components/auth/authGuard";
 
 export default function ProtectedLayout({
@@ -5,5 +7,15 @@ export default function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <RegularAuthGuard>{children}</RegularAuthGuard>;
+  return (
+    <RegularAuthGuard>
+      <SidebarProvider>
+        <AppSidebar />
+        <main>
+          <SidebarTrigger />
+          {children}
+        </main>
+      </SidebarProvider>
+    </RegularAuthGuard>
+  );
 }
