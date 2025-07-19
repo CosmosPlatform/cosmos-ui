@@ -24,7 +24,7 @@ import { GetUser } from "@/lib/context";
 const items = [
   {
     title: "Home",
-    url: "#",
+    url: "/",
     icon: Home,
   },
   {
