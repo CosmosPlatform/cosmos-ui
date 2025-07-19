@@ -30,7 +30,18 @@ const sendRequest = async <TRequest extends object, TResponse>(
     options.body = JSON.stringify(body);
   }
 
-  const response = await fetch(url, options);
+  let response;
+  try {
+    response = await fetch(url, options);
+  } catch (error) {
+    return {
+      error: {
+        error:
+          error instanceof Error ? error.message : "Network error occurred",
+        status: 0,
+      },
+    };
+  }
 
   if (!response.ok) {
     let errorResponse: ApiErrorResponse;
