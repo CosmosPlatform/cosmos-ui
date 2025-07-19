@@ -1,33 +1,26 @@
-import {
-  Home,
-  Network,
-  Search,
-  Settings,
-  ChevronUp,
-  Server,
-} from "lucide-react";
-import Link from "next/link";
+"use client";
 
+import * as React from "react";
+import { Home, Network, Server } from "lucide-react";
+
+import { NavUser } from "@/components/sidebar/nav-user";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarRail,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
 } from "@/components/ui/sidebar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { UserDropdown } from "./userDropDown";
+import Link from "next/link";
+import { PageHeader } from "@/components/sidebar/page-header";
+import { GetUser } from "@/lib/context";
 
-// Menu items.
 const items = [
   {
     title: "Home",
@@ -44,24 +37,26 @@ const items = [
     url: "#",
     icon: Network,
   },
-  {
-    title: "Search",
-    url: "#",
-    icon: Search,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
-  },
 ];
 
-export function AppSidebar() {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  let user = GetUser();
+  if (!user) {
+    user = {
+      username: "Unknown User",
+      email: "",
+      role: "user",
+    };
+  }
+
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" {...props}>
+      <SidebarHeader>
+        <PageHeader pageName="Cosmos" />
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
@@ -79,12 +74,9 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <UserDropdown />
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <NavUser user={user} />
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   );
 }
