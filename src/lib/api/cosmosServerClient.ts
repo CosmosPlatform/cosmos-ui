@@ -1,6 +1,7 @@
 "use client";
 
 import { serverConfig } from "@/config/serverConfig";
+import { GetToken } from "../context";
 
 // Function to send a request to the Cosmos server
 // This function is generic and can be used for any request type and any type of answer.
@@ -17,9 +18,14 @@ const sendRequest = async <TRequest extends object, TResponse>(
   body?: TRequest,
 ): Promise<ApiResult<TResponse>> => {
   const url = `${serverConfig.serverUrl}${path}`;
-  const headers = {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
+
+  const token = GetToken();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
 
   const options: RequestInit = {
     method,
