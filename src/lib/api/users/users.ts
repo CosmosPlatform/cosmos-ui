@@ -38,3 +38,9 @@ export type GetUsersResponse = {
 export async function getUsers(): Promise<ApiResult<GetUsersResponse>> {
   return sendRequest<never, GetUsersResponse>("GET", "/users");
 }
+
+// -------------------------------------------------------------------
+
+export async function deleteUser(email: string): Promise<ApiResult<null>> {
+  return sendRequest<never, null>("DELETE", `/users`, null, { email });
+}

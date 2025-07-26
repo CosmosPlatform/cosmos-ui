@@ -20,10 +20,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Loader2, Users } from "lucide-react";
+import { Plus, Loader2, Trash2 } from "lucide-react";
 import {
   createTeam,
   getTeams,
+  deleteTeam,
   type CreateTeamRequest,
 } from "@/lib/api/teams/teams";
 import { toast } from "sonner";
@@ -31,16 +32,14 @@ import { toast } from "sonner";
 export function TeamsManagement() {
   const [teams, setTeams] = useState<
     Array<{
-      //id: string;
       name: string;
       description?: string;
-      //createdAt: string;
-      //memberCount?: number;
     }>
   >([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deletingTeam, setDeletingTeam] = useState<string | null>(null);
 
   const [newTeam, setNewTeam] = useState<CreateTeamRequest>({
     name: "",
@@ -84,8 +83,21 @@ export function TeamsManagement() {
     setIsCreating(false);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+  const handleDeleteTeam = async (teamName: string) => {
+    if (!confirm("Are you sure you want to delete this team?")) {
+      return;
+    }
+
+    setDeletingTeam(teamName);
+    const result = await deleteTeam(teamName);
+    if (result.error) {
+      console.error("Error deleting team:", result.error);
+      toast.error("Failed to delete team");
+    } else {
+      toast.success("Team deleted successfully");
+      fetchTeams();
+    }
+    setDeletingTeam(null);
   };
 
   return (
@@ -152,8 +164,7 @@ export function TeamsManagement() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
-              {/* <TableHead>Members</TableHead> */}
-              {/* <TableHead>Created</TableHead> */}
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -161,15 +172,20 @@ export function TeamsManagement() {
               <TableRow key={team.name}>
                 <TableCell className="font-medium">{team.name}</TableCell>
                 <TableCell>{team.description || "No description"}</TableCell>
-                {/* 
                 <TableCell>
-                    <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    {team.memberCount || 0}
-                    </div>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDeleteTeam(team.name)}
+                    disabled={deletingTeam === team.name}
+                  >
+                    {deletingTeam === team.name ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </Button>
                 </TableCell>
-                <TableCell>{formatDate(team.createdAt)}</TableCell>
-                */}
               </TableRow>
             ))}
           </TableBody>

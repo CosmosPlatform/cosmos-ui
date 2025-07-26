@@ -34,3 +34,9 @@ export type GetTeamsResponse = {
 export async function getTeams(): Promise<ApiResult<GetTeamsResponse>> {
   return sendRequest<never, GetTeamsResponse>("GET", "/teams");
 }
+
+// -----------------------------------------------------------------
+
+export async function deleteTeam(teamName: string): Promise<ApiResult<null>> {
+  return sendRequest<never, null>("DELETE", `/teams`, null, { name: teamName });
+}

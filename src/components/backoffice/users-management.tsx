@@ -27,13 +27,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Trash2 } from "lucide-react";
 import {
   registerUser,
   getUsers,
+  deleteUser,
   type RegisterUserRequest,
 } from "@/lib/api/users/users";
 import { toast } from "sonner";
+import { GetUser } from "@/lib/context";
+import { useRouter } from "next/navigation";
 
 export function UsersManagement() {
   const [users, setUsers] = useState<
@@ -42,6 +45,8 @@ export function UsersManagement() {
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deletingEmail, setDeletingEmail] = useState<string | null>(null);
+  const router = useRouter();
 
   const [newUser, setNewUser] = useState<RegisterUserRequest>({
     username: "",
@@ -85,6 +90,38 @@ export function UsersManagement() {
       fetchUsers();
     }
     setIsCreating(false);
+  };
+
+  const handleDeleteUser = async (email: string) => {
+    if (!confirm("Are you sure you want to delete this user?")) {
+      return;
+    }
+
+    setDeletingEmail(email);
+
+    const myUser = GetUser();
+    if (myUser?.email === email) {
+      if (!confirm("You are about to delete your own account. Are you sure?")) {
+        return;
+      }
+    }
+
+    const result = await deleteUser(email);
+    if (result.error) {
+      console.error("Error deleting user:", result.error);
+      toast.error("Failed to delete user");
+    } else {
+      toast.success("User deleted successfully");
+      fetchUsers();
+      if (myUser?.email === email) {
+        toast.info("You have been logged out due to account deletion.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        router.push("/login");
+        return;
+      }
+    }
+    setDeletingEmail(null);
   };
 
   const getRoleBadgeVariant = (role: string) => {
@@ -193,6 +230,7 @@ export function UsersManagement() {
               <TableHead>Username</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -204,6 +242,20 @@ export function UsersManagement() {
                   <Badge variant={getRoleBadgeVariant(user.role)}>
                     {user.role}
                   </Badge>
+                </TableCell>
+                <TableCell>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDeleteUser(user.email)}
+                    disabled={deletingEmail === user.email}
+                  >
+                    {deletingEmail === user.email ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
