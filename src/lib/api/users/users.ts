@@ -32,6 +32,10 @@ export type GetUsersResponse = {
     username: string;
     email: string;
     role: string;
+    team?: {
+      name: string;
+      description: string;
+    };
   }>;
 };
 

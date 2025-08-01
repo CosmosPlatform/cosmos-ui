@@ -40,3 +40,34 @@ export async function getTeams(): Promise<ApiResult<GetTeamsResponse>> {
 export async function deleteTeam(teamName: string): Promise<ApiResult<null>> {
   return sendRequest<never, null>("DELETE", `/teams`, null, { name: teamName });
 }
+
+// -----------------------------------------------------------------
+
+export type AddTeamMemberRequest = {
+  email: string;
+};
+
+export async function addTeamMember(
+  teamName: string,
+  request: AddTeamMemberRequest,
+): Promise<ApiResult<null>> {
+  return sendRequest<AddTeamMemberRequest, null>(
+    "POST",
+    `/teams/${teamName}/members`,
+    request,
+  );
+}
+
+// -----------------------------------------------------------------
+
+export async function removeTeamMember(
+  teamName: string,
+  email: string,
+): Promise<ApiResult<null>> {
+  return sendRequest<never, null>(
+    "DELETE",
+    `/teams/${teamName}/members`,
+    null,
+    { email },
+  );
+}
