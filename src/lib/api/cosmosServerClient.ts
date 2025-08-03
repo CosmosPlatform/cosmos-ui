@@ -1,6 +1,7 @@
 "use client";
 
 import { serverConfig } from "@/config/serverConfig";
+import { GetToken } from "../context";
 
 // Function to send a request to the Cosmos server
 // This function is generic and can be used for any request type and any type of answer.
@@ -14,12 +15,24 @@ type ApiResult<T> =
 const sendRequest = async <TRequest extends object, TResponse>(
   method: string,
   path: string,
-  body?: TRequest,
+  body?: TRequest | null,
+  queryParams?: Record<string, string> | null,
 ): Promise<ApiResult<TResponse>> => {
-  const url = `${serverConfig.serverUrl}${path}`;
-  const headers = {
+  let url = `${serverConfig.serverUrl}${path}`;
+
+  if (queryParams && Object.keys(queryParams).length > 0) {
+    const queryString = new URLSearchParams(queryParams).toString();
+    url += `?${queryString}`;
+  }
+
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
+
+  const token = GetToken();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
 
   const options: RequestInit = {
     method,
@@ -58,8 +71,13 @@ const sendRequest = async <TRequest extends object, TResponse>(
     return { error: { ...errorResponse, status: response.status } };
   }
 
-  const data = await response.json();
-  return { data };
+  try {
+    const data = await response.json();
+    return { data };
+  } catch {
+    // If JSON parsing fails, we return null for empty responses
+    return { data: null as TResponse };
+  }
 };
 
 // Generic error response structure matching your Go backend

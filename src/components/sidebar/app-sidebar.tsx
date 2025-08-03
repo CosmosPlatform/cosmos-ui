@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Home, Network, Server } from "lucide-react";
+import { Home, Network, Server, Shield } from "lucide-react";
 
 import { NavUser } from "@/components/sidebar/nav-user";
 import {
@@ -49,6 +49,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     };
   }
 
+  const isAdmin = user.role === "admin";
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -72,6 +74,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Administration</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link href="/admin">
+                      <Shield />
+                      <span>Administration</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />
