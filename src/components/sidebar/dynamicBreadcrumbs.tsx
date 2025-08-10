@@ -13,7 +13,7 @@ import {
 
 const routeNameMap: Record<string, string> = {
   "": "Home",
-  services: "Services",
+  applications: "Applications",
   graphs: "Service Graph",
   settings: "Settings",
   profile: "Profile",
