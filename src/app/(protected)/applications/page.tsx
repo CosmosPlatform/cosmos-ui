@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/dist/client/components/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -44,6 +45,7 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const router = useRouter();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -80,6 +82,10 @@ export default function Page() {
 
     loadData();
   }, []);
+
+  const handleApplicationClick = (applicationName: string) => {
+    router.push(`/applications/${encodeURIComponent(applicationName)}`);
+  };
 
   const handleCreateApplication = async () => {
     if (
@@ -238,7 +244,8 @@ export default function Page() {
           {applications.map((application) => (
             <Card
               key={application.name}
-              className="hover:shadow-lg transition-shadow"
+              className="hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={() => handleApplicationClick(application.name)}
             >
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">

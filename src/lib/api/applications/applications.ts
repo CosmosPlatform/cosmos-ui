@@ -51,11 +51,23 @@ export async function getApplicationsWithFilter(
 
 // -----------------------------------------------------------------
 
+export type GetApplicationResponse = {
+  application: Application;
+};
+
 export async function getApplication(
   name: string,
-): Promise<ApiResult<CreateApplicationResponse>> {
-  return sendRequest<never, CreateApplicationResponse>(
+): Promise<ApiResult<GetApplicationResponse>> {
+  return sendRequest<never, GetApplicationResponse>(
     "GET",
     `/applications/${name}`,
   );
+}
+
+// -----------------------------------------------------------------
+
+export async function deleteApplication(
+  name: string,
+): Promise<ApiResult<null>> {
+  return sendRequest<never, null>("DELETE", `/applications/${name}`);
 }
