@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { getOwnUser } from "@/lib/api/users/users";
 
 type Props = {
   children: React.ReactNode;
@@ -33,20 +34,30 @@ export function AdminAuthGuard({ children }: Props) {
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (!user) {
-      router.replace("/login");
-      return;
-    }
+    const checkUserRole = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        router.replace("/login");
+        return;
+      }
 
-    const parsedUser = JSON.parse(user);
-    if (parsedUser.role !== "admin") {
-      router.replace("/");
-      return;
-    }
+      const result = await getOwnUser();
+      if (result.error) {
+        console.error("Failed to fetch user:", result.error);
+        router.replace("/login");
+        return;
+      }
 
-    setChecked(true);
-  }, []);
+      if (result.data.user.role !== "admin") {
+        router.replace("/");
+        return;
+      }
+
+      setChecked(true);
+    };
+
+    checkUserRole();
+  }, [router]);
 
   if (!checked) {
     return <AuthLoadingScreen />;

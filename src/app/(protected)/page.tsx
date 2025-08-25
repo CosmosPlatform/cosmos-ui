@@ -14,7 +14,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Users, Rocket, AlertCircle } from "lucide-react";
 import { getOwnUser } from "@/lib/api/users/users";
 import { getApplicationsByTeam } from "@/lib/api/applications/applications";
-import { GetUser } from "@/lib/context";
 
 type UserData = {
   username: string;
@@ -47,15 +46,6 @@ export default function HomePage() {
         setLoading(true);
         setError(null);
 
-        // Check if user is logged in
-        const localUser = GetUser();
-        if (!localUser) {
-          setError("Please log in to view your dashboard");
-          setLoading(false);
-          return;
-        }
-
-        // Fetch user details including team information
         const userResult = await getOwnUser();
         if (userResult.error) {
           setError("Failed to fetch user information");
@@ -65,7 +55,6 @@ export default function HomePage() {
 
         setUser(userResult.data.user);
 
-        // Fetch team applications if user has a team
         if (userResult.data.user.team) {
           const appsResult = await getApplicationsByTeam(
             userResult.data.user.team.name,
@@ -178,7 +167,6 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
-        {/* Applications Card */}
         <Card>
           <CardHeader className="flex flex-row items-center gap-2">
             <Rocket className="h-5 w-5" />

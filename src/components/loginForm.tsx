@@ -45,7 +45,6 @@ export function LoginForm() {
     const result = await authenticateUser(values);
     if (result.data) {
       console.log("Authentication successful:", result.data);
-      localStorage.setItem("user", JSON.stringify(result.data.user));
       localStorage.setItem("token", result.data.token);
       router.push("/");
     } else if (result.error) {

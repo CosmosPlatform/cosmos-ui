@@ -44,6 +44,8 @@ import {
   getUsers,
   deleteUser,
   type RegisterUserRequest,
+  User,
+  getOwnUser,
 } from "@/lib/api/users/users";
 import {
   getTeams,
@@ -51,7 +53,6 @@ import {
   removeTeamMember,
 } from "@/lib/api/teams/teams";
 import { toast } from "sonner";
-import { GetUser } from "@/lib/context";
 import { useRouter } from "next/navigation";
 
 type UserWithTeam = {
@@ -69,6 +70,7 @@ type Team = {
 export function UsersManagement() {
   const [users, setUsers] = useState<UserWithTeam[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -89,9 +91,19 @@ export function UsersManagement() {
   });
 
   useEffect(() => {
+    fetchCurrentUser();
     fetchUsers();
     fetchTeams();
   }, []);
+
+  const fetchCurrentUser = async () => {
+    const result = await getOwnUser();
+    if (result.error) {
+      console.error("Failed to fetch current user:", result.error);
+    } else {
+      setCurrentUser(result.data.user);
+    }
+  };
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -136,7 +148,6 @@ export function UsersManagement() {
   const handleDeleteUser = async (email: string) => {
     setDeletingEmail(email);
 
-    const myUser = GetUser();
     const result = await deleteUser(email);
     if (result.error) {
       console.error("Error deleting user:", result.error);
@@ -144,7 +155,7 @@ export function UsersManagement() {
     } else {
       toast.success("User deleted successfully");
       fetchUsers();
-      if (myUser?.email === email) {
+      if (currentUser?.email === email) {
         toast.info("You have been logged out due to account deletion.");
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -240,8 +251,7 @@ export function UsersManagement() {
   };
 
   const isCurrentUser = (email: string) => {
-    const myUser = GetUser();
-    return myUser?.email === email;
+    return currentUser?.email === email;
   };
 
   return (

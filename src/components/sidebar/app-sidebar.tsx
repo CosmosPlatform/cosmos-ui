@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { PageHeader } from "@/components/sidebar/page-header";
-import { GetUser } from "@/lib/context";
+import { getOwnUser, User } from "@/lib/api/users/users";
 
 const items = [
   {
@@ -40,16 +40,43 @@ const items = [
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  let user = GetUser();
-  if (!user) {
-    user = {
-      username: "Unknown User",
-      email: "",
-      role: "user",
+  const defaultUser = {
+    username: "Unknown User",
+    email: "",
+    role: "user",
+  };
+  const [user, setUser] = React.useState<User>(defaultUser);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchUser = async () => {
+      const userData = await getOwnUser();
+      if (userData.error) {
+        console.error("Failed to fetch user:", userData.error);
+        setLoading(false);
+        return;
+      }
+      setUser(userData.data.user);
+      setLoading(false);
     };
+
+    fetchUser();
+  }, []);
+
+  if (loading) {
+    return (
+      <Sidebar collapsible="icon" {...props}>
+        <SidebarHeader>
+          <PageHeader pageName="Cosmos" />
+        </SidebarHeader>
+        <SidebarContent>
+          <div>Loading...</div>
+        </SidebarContent>
+      </Sidebar>
+    );
   }
 
-  const isAdmin = user.role === "admin";
+  const isAdmin = user?.role === "admin";
 
   return (
     <Sidebar collapsible="icon" {...props}>
