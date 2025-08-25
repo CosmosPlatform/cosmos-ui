@@ -45,6 +45,24 @@ export async function getUsers(): Promise<ApiResult<GetUsersResponse>> {
 
 // -------------------------------------------------------------------
 
+export type GetUserResponse = {
+  user: {
+    username: string;
+    email: string;
+    role: string;
+    team?: {
+      name: string;
+      description: string;
+    };
+  };
+};
+
+export async function getOwnUser(): Promise<ApiResult<GetUserResponse>> {
+  return sendRequest<never, GetUserResponse>("GET", `/users/me`, null);
+}
+
+// -------------------------------------------------------------------
+
 export async function deleteUser(email: string): Promise<ApiResult<null>> {
   return sendRequest<never, null>("DELETE", `/users`, null, { email });
 }

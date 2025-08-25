@@ -71,3 +71,18 @@ export async function deleteApplication(
 ): Promise<ApiResult<null>> {
   return sendRequest<never, null>("DELETE", `/applications/${name}`);
 }
+
+// -----------------------------------------------------------------
+
+export type GetApplicationsByTeamResponse = {
+  applications: Array<Application>;
+};
+
+export async function getApplicationsByTeam(
+  teamName: string,
+): Promise<ApiResult<GetApplicationsByTeamResponse>> {
+  return sendRequest<never, GetApplicationsByTeamResponse>(
+    "GET",
+    `/applications/team/${teamName}`,
+  );
+}

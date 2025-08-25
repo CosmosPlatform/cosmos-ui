@@ -24,6 +24,21 @@ export async function createTeam(
 
 // -----------------------------------------------------------------
 
+export type GetTeamResponse = {
+  team: {
+    name: string;
+    description: string;
+  };
+};
+
+export async function getTeam(
+  teamName: string,
+): Promise<ApiResult<GetTeamResponse>> {
+  return sendRequest<never, GetTeamResponse>("GET", `/teams/${teamName}`);
+}
+
+// -----------------------------------------------------------------
+
 export type GetTeamsResponse = {
   teams: Array<{
     name: string;
