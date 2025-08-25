@@ -7,12 +7,18 @@ export type RegisterUserRequest = {
   role: string;
 };
 
-export type RegisterUserResponse = {
-  User: {
-    username: string;
-    email: string;
-    role: string;
+export type User = {
+  username: string;
+  email: string;
+  role: string;
+  team?: {
+    name: string;
+    description: string;
   };
+};
+
+export type RegisterUserResponse = {
+  User: User;
 };
 
 export async function registerUser(
@@ -28,15 +34,7 @@ export async function registerUser(
 // -------------------------------------------------------------------
 
 export type GetUsersResponse = {
-  users: Array<{
-    username: string;
-    email: string;
-    role: string;
-    team?: {
-      name: string;
-      description: string;
-    };
-  }>;
+  users: Array<User>;
 };
 
 export async function getUsers(): Promise<ApiResult<GetUsersResponse>> {
@@ -46,15 +44,7 @@ export async function getUsers(): Promise<ApiResult<GetUsersResponse>> {
 // -------------------------------------------------------------------
 
 export type GetUserResponse = {
-  user: {
-    username: string;
-    email: string;
-    role: string;
-    team?: {
-      name: string;
-      description: string;
-    };
-  };
+  user: User;
 };
 
 export async function getOwnUser(): Promise<ApiResult<GetUserResponse>> {
