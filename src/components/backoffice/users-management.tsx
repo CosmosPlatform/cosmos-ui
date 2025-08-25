@@ -38,7 +38,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Loader2, Trash2, Users, UserMinus } from "lucide-react";
+import { Plus, Loader2, Trash2, Users } from "lucide-react";
 import {
   registerUser,
   getUsers,
