@@ -13,6 +13,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -84,10 +95,6 @@ export function TeamsManagement() {
   };
 
   const handleDeleteTeam = async (teamName: string) => {
-    if (!confirm("Are you sure you want to delete this team?")) {
-      return;
-    }
-
     setDeletingTeam(teamName);
     const result = await deleteTeam(teamName);
     if (result.error) {
@@ -173,18 +180,39 @@ export function TeamsManagement() {
                 <TableCell className="font-medium">{team.name}</TableCell>
                 <TableCell>{team.description || "No description"}</TableCell>
                 <TableCell>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDeleteTeam(team.name)}
-                    disabled={deletingTeam === team.name}
-                  >
-                    {deletingTeam === team.name ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
-                    )}
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        disabled={deletingTeam === team.name}
+                      >
+                        {deletingTeam === team.name ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Team</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete the team "{team.name}
+                          "? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteTeam(team.name)}
+                          className="bg-destructive hover:bg-destructive/90"
+                        >
+                          Delete Team
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </TableCell>
               </TableRow>
             ))}

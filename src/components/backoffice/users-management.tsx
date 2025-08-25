@@ -12,6 +12,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -123,20 +134,9 @@ export function UsersManagement() {
   };
 
   const handleDeleteUser = async (email: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) {
-      return;
-    }
-
     setDeletingEmail(email);
 
     const myUser = GetUser();
-    if (myUser?.email === email) {
-      if (!confirm("You are about to delete your own account. Are you sure?")) {
-        setDeletingEmail(null);
-        return;
-      }
-    }
-
     const result = await deleteUser(email);
     if (result.error) {
       console.error("Error deleting user:", result.error);
@@ -237,6 +237,11 @@ export function UsersManagement() {
       default:
         return "default";
     }
+  };
+
+  const isCurrentUser = (email: string) => {
+    const myUser = GetUser();
+    return myUser?.email === email;
   };
 
   return (
@@ -425,18 +430,46 @@ export function UsersManagement() {
                     >
                       <Users className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteUser(user.email)}
-                      disabled={deletingEmail === user.email}
-                    >
-                      {deletingEmail === user.email ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={deletingEmail === user.email}
+                        >
+                          {deletingEmail === user.email ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete User</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete the user "
+                            {user.username}" ({user.email})?
+                            {isCurrentUser(user.email) && (
+                              <span className="block mt-2 font-medium text-destructive">
+                                Warning: You are about to delete your own
+                                account. This will log you out immediately.
+                              </span>
+                            )}
+                            This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteUser(user.email)}
+                            className="bg-destructive hover:bg-destructive/90"
+                          >
+                            Delete User
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </TableCell>
               </TableRow>

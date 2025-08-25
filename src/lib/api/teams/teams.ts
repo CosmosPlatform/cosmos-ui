@@ -38,7 +38,7 @@ export async function getTeams(): Promise<ApiResult<GetTeamsResponse>> {
 // -----------------------------------------------------------------
 
 export async function deleteTeam(teamName: string): Promise<ApiResult<null>> {
-  return sendRequest<never, null>("DELETE", `/teams`, null, { name: teamName });
+  return sendRequest<never, null>("DELETE", `/teams/${teamName}`);
 }
 
 // -----------------------------------------------------------------
