@@ -1,4 +1,4 @@
-import { ApiResult, sendRequest } from "@/lib/api/cosmosServerClient";
+import { ApiResult, sendRequestWithAuth } from "@/lib/api/cosmosServerClient";
 
 export type CreateTeamRequest = {
   name: string;
@@ -15,7 +15,7 @@ export type CreateTeamResponse = {
 export async function createTeam(
   request: CreateTeamRequest,
 ): Promise<ApiResult<CreateTeamResponse>> {
-  return sendRequest<CreateTeamRequest, CreateTeamResponse>(
+  return sendRequestWithAuth<CreateTeamRequest, CreateTeamResponse>(
     "POST",
     "/teams",
     request,
@@ -34,7 +34,10 @@ export type GetTeamResponse = {
 export async function getTeam(
   teamName: string,
 ): Promise<ApiResult<GetTeamResponse>> {
-  return sendRequest<never, GetTeamResponse>("GET", `/teams/${teamName}`);
+  return sendRequestWithAuth<never, GetTeamResponse>(
+    "GET",
+    `/teams/${teamName}`,
+  );
 }
 
 // -----------------------------------------------------------------
@@ -47,13 +50,13 @@ export type GetTeamsResponse = {
 };
 
 export async function getTeams(): Promise<ApiResult<GetTeamsResponse>> {
-  return sendRequest<never, GetTeamsResponse>("GET", "/teams");
+  return sendRequestWithAuth<never, GetTeamsResponse>("GET", "/teams");
 }
 
 // -----------------------------------------------------------------
 
 export async function deleteTeam(teamName: string): Promise<ApiResult<null>> {
-  return sendRequest<never, null>("DELETE", `/teams/${teamName}`);
+  return sendRequestWithAuth<never, null>("DELETE", `/teams/${teamName}`);
 }
 
 // -----------------------------------------------------------------
@@ -66,7 +69,7 @@ export async function addTeamMember(
   teamName: string,
   request: AddTeamMemberRequest,
 ): Promise<ApiResult<null>> {
-  return sendRequest<AddTeamMemberRequest, null>(
+  return sendRequestWithAuth<AddTeamMemberRequest, null>(
     "POST",
     `/teams/${teamName}/members`,
     request,
@@ -79,7 +82,7 @@ export async function removeTeamMember(
   teamName: string,
   email: string,
 ): Promise<ApiResult<null>> {
-  return sendRequest<never, null>(
+  return sendRequestWithAuth<never, null>(
     "DELETE",
     `/teams/${teamName}/members`,
     null,

@@ -1,4 +1,4 @@
-import { ApiResult, sendRequest } from "@/lib/api/cosmosServerClient";
+import { ApiResult, sendRequestWithAuth } from "@/lib/api/cosmosServerClient";
 
 export type Team = {
   name: string;
@@ -24,11 +24,10 @@ type CreateApplicationResponse = {
 export async function createApplication(
   request: CreateApplicationRequest,
 ): Promise<ApiResult<CreateApplicationResponse>> {
-  return sendRequest<CreateApplicationRequest, CreateApplicationResponse>(
-    "POST",
-    "/applications",
-    request,
-  );
+  return sendRequestWithAuth<
+    CreateApplicationRequest,
+    CreateApplicationResponse
+  >("POST", "/applications", request);
 }
 
 // -----------------------------------------------------------------
@@ -41,7 +40,7 @@ export type GetApplicationsResponse = {
 export async function getApplicationsWithFilter(
   name: string,
 ): Promise<ApiResult<GetApplicationsResponse>> {
-  return sendRequest<never, GetApplicationsResponse>(
+  return sendRequestWithAuth<never, GetApplicationsResponse>(
     "GET",
     "/applications",
     null,
@@ -58,7 +57,7 @@ export type GetApplicationResponse = {
 export async function getApplication(
   name: string,
 ): Promise<ApiResult<GetApplicationResponse>> {
-  return sendRequest<never, GetApplicationResponse>(
+  return sendRequestWithAuth<never, GetApplicationResponse>(
     "GET",
     `/applications/${name}`,
   );
@@ -69,7 +68,7 @@ export async function getApplication(
 export async function deleteApplication(
   name: string,
 ): Promise<ApiResult<null>> {
-  return sendRequest<never, null>("DELETE", `/applications/${name}`);
+  return sendRequestWithAuth<never, null>("DELETE", `/applications/${name}`);
 }
 
 // -----------------------------------------------------------------
@@ -81,7 +80,7 @@ export type GetApplicationsByTeamResponse = {
 export async function getApplicationsByTeam(
   teamName: string,
 ): Promise<ApiResult<GetApplicationsByTeamResponse>> {
-  return sendRequest<never, GetApplicationsByTeamResponse>(
+  return sendRequestWithAuth<never, GetApplicationsByTeamResponse>(
     "GET",
     `/applications/team/${teamName}`,
   );

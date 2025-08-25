@@ -1,4 +1,4 @@
-import { ApiResult, sendRequest } from "@/lib/api/cosmosServerClient";
+import { ApiResult, sendRequestWithAuth } from "@/lib/api/cosmosServerClient";
 
 export type RegisterUserRequest = {
   username: string;
@@ -18,7 +18,7 @@ export type RegisterUserResponse = {
 export async function registerUser(
   request: RegisterUserRequest,
 ): Promise<ApiResult<RegisterUserResponse>> {
-  return sendRequest<RegisterUserRequest, RegisterUserResponse>(
+  return sendRequestWithAuth<RegisterUserRequest, RegisterUserResponse>(
     "POST",
     "/users",
     request,
@@ -40,7 +40,7 @@ export type GetUsersResponse = {
 };
 
 export async function getUsers(): Promise<ApiResult<GetUsersResponse>> {
-  return sendRequest<never, GetUsersResponse>("GET", "/users");
+  return sendRequestWithAuth<never, GetUsersResponse>("GET", "/users");
 }
 
 // -------------------------------------------------------------------
@@ -58,11 +58,11 @@ export type GetUserResponse = {
 };
 
 export async function getOwnUser(): Promise<ApiResult<GetUserResponse>> {
-  return sendRequest<never, GetUserResponse>("GET", `/users/me`, null);
+  return sendRequestWithAuth<never, GetUserResponse>("GET", `/users/me`, null);
 }
 
 // -------------------------------------------------------------------
 
 export async function deleteUser(email: string): Promise<ApiResult<null>> {
-  return sendRequest<never, null>("DELETE", `/users`, null, { email });
+  return sendRequestWithAuth<never, null>("DELETE", `/users`, null, { email });
 }
