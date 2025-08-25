@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 
 type Props = {
   children: React.ReactNode;
@@ -21,8 +22,7 @@ export default function RegularAuthGuard({ children }: Props) {
   }, []);
 
   if (!checked) {
-    // Optionally show a loading spinner while checking
-    return <div>Loading...</div>;
+    return <AuthLoadingScreen />;
   }
 
   return <>{children}</>;
@@ -49,9 +49,16 @@ export function AdminAuthGuard({ children }: Props) {
   }, []);
 
   if (!checked) {
-    // Optionally show a loading spinner while checking
-    return <div>Loading...</div>;
+    return <AuthLoadingScreen />;
   }
 
   return <>{children}</>;
+}
+
+function AuthLoadingScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
 }
