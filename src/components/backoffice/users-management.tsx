@@ -38,7 +38,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Loader2, Trash2, Users } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Plus, Loader2, Trash2, Users, AlertCircle } from "lucide-react";
 import {
   registerUser,
   getUsers,
@@ -81,6 +82,7 @@ export function UsersManagement() {
   );
   const [selectedTeam, setSelectedTeam] = useState<string>("");
   const [isManagingTeam, setIsManagingTeam] = useState(false);
+  const [createUserError, setCreateUserError] = useState<string>("");
   const router = useRouter();
 
   const [newUser, setNewUser] = useState<RegisterUserRequest>({
@@ -126,23 +128,35 @@ export function UsersManagement() {
   };
 
   const handleCreateUser = async () => {
+    setCreateUserError("");
+
     if (!newUser.username || !newUser.email || !newUser.password) {
-      toast.error("Please fill all required fields");
+      setCreateUserError("Please fill all required fields");
       return;
     }
 
     setIsCreating(true);
     const result = await registerUser(newUser);
+
     if (result.error) {
       console.error("Error creating user:", result.error);
-      toast.error("Failed to create user");
+      setCreateUserError(result.error.error || "Failed to create user");
     } else {
       toast.success("User created successfully");
       setNewUser({ username: "", email: "", password: "", role: "user" });
+      setCreateUserError("");
       setIsDialogOpen(false);
       fetchUsers();
     }
     setIsCreating(false);
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    if (!open) {
+      setCreateUserError("");
+      setNewUser({ username: "", email: "", password: "", role: "user" });
+    }
+    setIsDialogOpen(open);
   };
 
   const handleDeleteUser = async (email: string) => {
@@ -258,7 +272,7 @@ export function UsersManagement() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Users ({users.length})</h3>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -269,8 +283,15 @@ export function UsersManagement() {
             <DialogHeader>
               <DialogTitle>Create New User</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
+            <div className="space-y-6">
+              {createUserError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{createUserError}</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="space-y-3">
                 <Label htmlFor="username">Username</Label>
                 <Input
                   id="username"
@@ -281,7 +302,8 @@ export function UsersManagement() {
                   placeholder="Enter username"
                 />
               </div>
-              <div>
+
+              <div className="space-y-3">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
@@ -293,7 +315,8 @@ export function UsersManagement() {
                   placeholder="Enter email"
                 />
               </div>
-              <div>
+
+              <div className="space-y-3">
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
@@ -305,7 +328,8 @@ export function UsersManagement() {
                   placeholder="Enter password"
                 />
               </div>
-              <div>
+
+              <div className="space-y-3">
                 <Label htmlFor="role">Role</Label>
                 <Select
                   value={newUser.role}
@@ -322,6 +346,7 @@ export function UsersManagement() {
                   </SelectContent>
                 </Select>
               </div>
+
               <Button
                 onClick={handleCreateUser}
                 disabled={isCreating}
