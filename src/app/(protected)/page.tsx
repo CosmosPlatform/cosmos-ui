@@ -173,8 +173,8 @@ export default function HomePage() {
             <div>
               <CardTitle>Team Applications</CardTitle>
               <CardDescription>
-                {applications.length} application
-                {applications.length !== 1 ? "s" : ""} in your team
+                {(applications ?? []).length} application
+                {(applications ?? []).length !== 1 ? "s" : ""} in your team
               </CardDescription>
             </div>
           </CardHeader>
