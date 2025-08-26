@@ -38,23 +38,6 @@ export default function LoginPage() {
             </p>
           </div>
           <LoginForm />
-          <p className="text-muted-foreground px-8 text-center text-sm">
-            By logging in, you agree to our{" "}
-            <Link
-              href="/terms"
-              className="hover:text-primary underline underline-offset-4"
-            >
-              Terms of Service
-            </Link>{" "}
-            and{" "}
-            <Link
-              href="/privacy"
-              className="hover:text-primary underline underline-offset-4"
-            >
-              Privacy Policy
-            </Link>
-            .
-          </p>
         </div>
       </div>
     </div>
