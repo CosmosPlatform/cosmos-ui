@@ -12,6 +12,13 @@ type ApiResult<T> =
   | { data: T; error?: undefined }
   | { data?: undefined; error: ApiErrorResponse };
 
+const handleUnauthorized = () => {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+  }
+};
+
 const sendRequest = async <TRequest extends object, TResponse>(
   method: string,
   path: string,
@@ -80,6 +87,27 @@ const sendRequest = async <TRequest extends object, TResponse>(
   }
 };
 
+const sendRequestWithAuth = async <TRequest extends object, TResponse>(
+  method: string,
+  path: string,
+  body?: TRequest | null,
+  queryParams?: Record<string, string> | null,
+): Promise<ApiResult<TResponse>> => {
+  const result = await sendRequest<TRequest, TResponse>(
+    method,
+    path,
+    body,
+    queryParams,
+  );
+
+  if (result.error?.status === 401) {
+    handleUnauthorized();
+    return result;
+  }
+
+  return result;
+};
+
 // Generic error response structure matching your Go backend
 interface ApiErrorResponse {
   error: string;
@@ -87,5 +115,5 @@ interface ApiErrorResponse {
   status: number;
 }
 
-export { sendRequest };
+export { sendRequest, sendRequestWithAuth };
 export type { ApiResult };

@@ -1,4 +1,4 @@
-import { ApiResult, sendRequest } from "@/lib/api/cosmosServerClient";
+import { ApiResult, sendRequestWithAuth } from "@/lib/api/cosmosServerClient";
 
 export type RegisterUserRequest = {
   username: string;
@@ -7,18 +7,24 @@ export type RegisterUserRequest = {
   role: string;
 };
 
-export type RegisterUserResponse = {
-  User: {
-    username: string;
-    email: string;
-    role: string;
+export type User = {
+  username: string;
+  email: string;
+  role: string;
+  team?: {
+    name: string;
+    description: string;
   };
+};
+
+export type RegisterUserResponse = {
+  User: User;
 };
 
 export async function registerUser(
   request: RegisterUserRequest,
 ): Promise<ApiResult<RegisterUserResponse>> {
-  return sendRequest<RegisterUserRequest, RegisterUserResponse>(
+  return sendRequestWithAuth<RegisterUserRequest, RegisterUserResponse>(
     "POST",
     "/users",
     request,
@@ -28,23 +34,25 @@ export async function registerUser(
 // -------------------------------------------------------------------
 
 export type GetUsersResponse = {
-  users: Array<{
-    username: string;
-    email: string;
-    role: string;
-    team?: {
-      name: string;
-      description: string;
-    };
-  }>;
+  users: Array<User>;
 };
 
 export async function getUsers(): Promise<ApiResult<GetUsersResponse>> {
-  return sendRequest<never, GetUsersResponse>("GET", "/users");
+  return sendRequestWithAuth<never, GetUsersResponse>("GET", "/users");
+}
+
+// -------------------------------------------------------------------
+
+export type GetUserResponse = {
+  user: User;
+};
+
+export async function getOwnUser(): Promise<ApiResult<GetUserResponse>> {
+  return sendRequestWithAuth<never, GetUserResponse>("GET", `/users/me`, null);
 }
 
 // -------------------------------------------------------------------
 
 export async function deleteUser(email: string): Promise<ApiResult<null>> {
-  return sendRequest<never, null>("DELETE", `/users`, null, { email });
+  return sendRequestWithAuth<never, null>("DELETE", `/users`, null, { email });
 }

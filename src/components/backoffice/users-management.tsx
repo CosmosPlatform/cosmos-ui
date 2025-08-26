@@ -12,6 +12,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -27,12 +38,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Loader2, Trash2, Users, UserMinus } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Plus, Loader2, Trash2, Users, AlertCircle } from "lucide-react";
 import {
   registerUser,
   getUsers,
   deleteUser,
   type RegisterUserRequest,
+  User,
+  getOwnUser,
 } from "@/lib/api/users/users";
 import {
   getTeams,
@@ -40,7 +54,6 @@ import {
   removeTeamMember,
 } from "@/lib/api/teams/teams";
 import { toast } from "sonner";
-import { GetUser } from "@/lib/context";
 import { useRouter } from "next/navigation";
 
 type UserWithTeam = {
@@ -58,6 +71,7 @@ type Team = {
 export function UsersManagement() {
   const [users, setUsers] = useState<UserWithTeam[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -68,6 +82,7 @@ export function UsersManagement() {
   );
   const [selectedTeam, setSelectedTeam] = useState<string>("");
   const [isManagingTeam, setIsManagingTeam] = useState(false);
+  const [createUserError, setCreateUserError] = useState<string>("");
   const router = useRouter();
 
   const [newUser, setNewUser] = useState<RegisterUserRequest>({
@@ -78,9 +93,19 @@ export function UsersManagement() {
   });
 
   useEffect(() => {
+    fetchCurrentUser();
     fetchUsers();
     fetchTeams();
   }, []);
+
+  const fetchCurrentUser = async () => {
+    const result = await getOwnUser();
+    if (result.error) {
+      console.error("Failed to fetch current user:", result.error);
+    } else {
+      setCurrentUser(result.data.user);
+    }
+  };
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -103,39 +128,39 @@ export function UsersManagement() {
   };
 
   const handleCreateUser = async () => {
+    setCreateUserError("");
+
     if (!newUser.username || !newUser.email || !newUser.password) {
-      toast.error("Please fill all required fields");
+      setCreateUserError("Please fill all required fields");
       return;
     }
 
     setIsCreating(true);
     const result = await registerUser(newUser);
+
     if (result.error) {
       console.error("Error creating user:", result.error);
-      toast.error("Failed to create user");
+      setCreateUserError(result.error.error || "Failed to create user");
     } else {
       toast.success("User created successfully");
       setNewUser({ username: "", email: "", password: "", role: "user" });
+      setCreateUserError("");
       setIsDialogOpen(false);
       fetchUsers();
     }
     setIsCreating(false);
   };
 
+  const handleDialogClose = (open: boolean) => {
+    if (!open) {
+      setCreateUserError("");
+      setNewUser({ username: "", email: "", password: "", role: "user" });
+    }
+    setIsDialogOpen(open);
+  };
+
   const handleDeleteUser = async (email: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) {
-      return;
-    }
-
     setDeletingEmail(email);
-
-    const myUser = GetUser();
-    if (myUser?.email === email) {
-      if (!confirm("You are about to delete your own account. Are you sure?")) {
-        setDeletingEmail(null);
-        return;
-      }
-    }
 
     const result = await deleteUser(email);
     if (result.error) {
@@ -144,7 +169,7 @@ export function UsersManagement() {
     } else {
       toast.success("User deleted successfully");
       fetchUsers();
-      if (myUser?.email === email) {
+      if (currentUser?.email === email) {
         toast.info("You have been logged out due to account deletion.");
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -239,11 +264,15 @@ export function UsersManagement() {
     }
   };
 
+  const isCurrentUser = (email: string) => {
+    return currentUser?.email === email;
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Users ({users.length})</h3>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -254,8 +283,15 @@ export function UsersManagement() {
             <DialogHeader>
               <DialogTitle>Create New User</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
+            <div className="space-y-6">
+              {createUserError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{createUserError}</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="space-y-3">
                 <Label htmlFor="username">Username</Label>
                 <Input
                   id="username"
@@ -266,7 +302,8 @@ export function UsersManagement() {
                   placeholder="Enter username"
                 />
               </div>
-              <div>
+
+              <div className="space-y-3">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
@@ -278,7 +315,8 @@ export function UsersManagement() {
                   placeholder="Enter email"
                 />
               </div>
-              <div>
+
+              <div className="space-y-3">
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
@@ -290,7 +328,8 @@ export function UsersManagement() {
                   placeholder="Enter password"
                 />
               </div>
-              <div>
+
+              <div className="space-y-3">
                 <Label htmlFor="role">Role</Label>
                 <Select
                   value={newUser.role}
@@ -307,6 +346,7 @@ export function UsersManagement() {
                   </SelectContent>
                 </Select>
               </div>
+
               <Button
                 onClick={handleCreateUser}
                 disabled={isCreating}
@@ -425,18 +465,46 @@ export function UsersManagement() {
                     >
                       <Users className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteUser(user.email)}
-                      disabled={deletingEmail === user.email}
-                    >
-                      {deletingEmail === user.email ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={deletingEmail === user.email}
+                        >
+                          {deletingEmail === user.email ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete User</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete the user "
+                            {user.username}" ({user.email})?
+                            {isCurrentUser(user.email) && (
+                              <span className="block mt-2 font-medium text-destructive">
+                                Warning: You are about to delete your own
+                                account. This will log you out immediately.
+                              </span>
+                            )}
+                            This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteUser(user.email)}
+                            className="bg-destructive hover:bg-destructive/90"
+                          >
+                            Delete User
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </TableCell>
               </TableRow>

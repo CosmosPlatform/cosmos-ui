@@ -13,6 +13,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -20,7 +31,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Loader2, Trash2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Plus, Loader2, Trash2, AlertCircle } from "lucide-react";
 import {
   createTeam,
   getTeams,
@@ -40,6 +52,7 @@ export function TeamsManagement() {
   const [isCreating, setIsCreating] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deletingTeam, setDeletingTeam] = useState<string | null>(null);
+  const [createTeamError, setCreateTeamError] = useState<string>("");
 
   const [newTeam, setNewTeam] = useState<CreateTeamRequest>({
     name: "",
@@ -62,8 +75,10 @@ export function TeamsManagement() {
   };
 
   const handleCreateTeam = async () => {
+    setCreateTeamError("");
+
     if (!newTeam.name) {
-      toast.error("Team name is required");
+      setCreateTeamError("Team name is required");
       return;
     }
 
@@ -72,10 +87,11 @@ export function TeamsManagement() {
     const result = await createTeam(newTeam);
     if (result.error) {
       console.error("Error creating team:", result.error);
-      toast.error("Failed to create team");
+      setCreateTeamError(result.error.error || "Failed to create team");
     } else {
       toast.success("Team created successfully");
       setNewTeam({ name: "", description: "" });
+      setCreateTeamError("");
       setIsDialogOpen(false);
       fetchTeams();
     }
@@ -83,11 +99,15 @@ export function TeamsManagement() {
     setIsCreating(false);
   };
 
-  const handleDeleteTeam = async (teamName: string) => {
-    if (!confirm("Are you sure you want to delete this team?")) {
-      return;
+  const handleDialogClose = (open: boolean) => {
+    if (!open) {
+      setCreateTeamError("");
+      setNewTeam({ name: "", description: "" });
     }
+    setIsDialogOpen(open);
+  };
 
+  const handleDeleteTeam = async (teamName: string) => {
     setDeletingTeam(teamName);
     const result = await deleteTeam(teamName);
     if (result.error) {
@@ -104,7 +124,7 @@ export function TeamsManagement() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Teams ({teams.length})</h3>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -115,8 +135,15 @@ export function TeamsManagement() {
             <DialogHeader>
               <DialogTitle>Create New Team</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
+            <div className="space-y-6">
+              {createTeamError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{createTeamError}</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="space-y-3">
                 <Label htmlFor="teamName">Team Name</Label>
                 <Input
                   id="teamName"
@@ -127,7 +154,8 @@ export function TeamsManagement() {
                   placeholder="Enter team name"
                 />
               </div>
-              <div>
+
+              <div className="space-y-3">
                 <Label htmlFor="teamDescription">Description (Optional)</Label>
                 <Textarea
                   id="teamDescription"
@@ -139,6 +167,7 @@ export function TeamsManagement() {
                   rows={3}
                 />
               </div>
+
               <Button
                 onClick={handleCreateTeam}
                 disabled={isCreating}
@@ -173,18 +202,39 @@ export function TeamsManagement() {
                 <TableCell className="font-medium">{team.name}</TableCell>
                 <TableCell>{team.description || "No description"}</TableCell>
                 <TableCell>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDeleteTeam(team.name)}
-                    disabled={deletingTeam === team.name}
-                  >
-                    {deletingTeam === team.name ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
-                    )}
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        disabled={deletingTeam === team.name}
+                      >
+                        {deletingTeam === team.name ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Team</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete the team "{team.name}
+                          "? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteTeam(team.name)}
+                          className="bg-destructive hover:bg-destructive/90"
+                        >
+                          Delete Team
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </TableCell>
               </TableRow>
             ))}
