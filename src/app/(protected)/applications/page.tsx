@@ -57,6 +57,7 @@ export default function Page() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isGitSectionOpen, setIsGitSectionOpen] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const router = useRouter();
 
   // Form state
@@ -114,21 +115,43 @@ export default function Page() {
     router.push(`/applications/${encodeURIComponent(applicationName)}`);
   };
 
-  const handleCreateApplication = async () => {
-    if (
-      !formData.name.trim() ||
-      !formData.description.trim() ||
-      !formData.team
-    ) {
-      toast.error("Please fill in all fields");
-      return;
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    // Validate required fields
+    if (!formData.name.trim()) {
+      newErrors.name = "Application name is required";
+    }
+    if (!formData.description.trim()) {
+      newErrors.description = "Description is required";
     }
 
     // Validate git fields if any are filled
-    if (hasAnyGitField && !areAllGitFieldsFilled) {
-      toast.error(
-        "If you provide git information, all git fields must be filled and the repository URL must be valid",
-      );
+    if (hasAnyGitField) {
+      if (!formData.gitProvider) {
+        newErrors.gitProvider =
+          "Git provider is required when git information is provided";
+      }
+      if (!formData.gitBranch.trim()) {
+        newErrors.gitBranch =
+          "Git branch is required when git information is provided";
+      }
+      if (!formData.gitOwner.trim()) {
+        newErrors.gitOwner =
+          "Repository owner is required when git information is provided";
+      }
+      if (!formData.gitRepositoryName.trim()) {
+        newErrors.gitRepositoryName =
+          "Repository name is required when git information is provided";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleCreateApplication = async () => {
+    if (!validateForm()) {
       return;
     }
 
@@ -137,8 +160,12 @@ export default function Page() {
     const requestData: any = {
       name: formData.name.trim(),
       description: formData.description.trim(),
-      team: formData.team,
     };
+
+    // Add team if selected
+    if (formData.team) {
+      requestData.team = formData.team;
+    }
 
     // Add git information if all fields are provided
     if (areAllGitFieldsFilled) {
@@ -171,6 +198,7 @@ export default function Page() {
         gitOwner: "",
         gitRepositoryName: "",
       });
+      setErrors({});
       setIsDialogOpen(false);
       setIsGitSectionOpen(false);
     }
@@ -180,6 +208,10 @@ export default function Page() {
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    // Clear error for this field when user starts typing
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
   };
 
   if (loading) {
@@ -223,7 +255,13 @@ export default function Page() {
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   placeholder="Enter application name"
+                  className={
+                    errors.name ? "border-red-500 focus:border-red-500" : ""
+                  }
                 />
+                {errors.name && (
+                  <p className="text-sm text-red-500">{errors.name}</p>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="description">Description</Label>
@@ -235,7 +273,15 @@ export default function Page() {
                   }
                   placeholder="Enter application description"
                   rows={3}
+                  className={
+                    errors.description
+                      ? "border-red-500 focus:border-red-500"
+                      : ""
+                  }
                 />
+                {errors.description && (
+                  <p className="text-sm text-red-500">{errors.description}</p>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="team">Team</Label>
@@ -243,7 +289,11 @@ export default function Page() {
                   value={formData.team}
                   onValueChange={(value) => handleInputChange("team", value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger
+                    className={
+                      errors.team ? "border-red-500 focus:border-red-500" : ""
+                    }
+                  >
                     <SelectValue placeholder="Select a team" />
                   </SelectTrigger>
                   <SelectContent>
@@ -254,6 +304,9 @@ export default function Page() {
                     ))}
                   </SelectContent>
                 </Select>
+                {errors.team && (
+                  <p className="text-sm text-red-500">{errors.team}</p>
+                )}
               </div>
 
               {/* Git Information Collapsible Section */}
@@ -288,7 +341,13 @@ export default function Page() {
                         handleInputChange("gitProvider", value)
                       }
                     >
-                      <SelectTrigger>
+                      <SelectTrigger
+                        className={
+                          errors.gitProvider
+                            ? "border-red-500 focus:border-red-500"
+                            : ""
+                        }
+                      >
                         <SelectValue placeholder="Select git provider" />
                       </SelectTrigger>
                       <SelectContent>
@@ -297,6 +356,11 @@ export default function Page() {
                         <SelectItem value="bitbucket">Bitbucket</SelectItem>
                       </SelectContent>
                     </Select>
+                    {errors.gitProvider && (
+                      <p className="text-sm text-red-500">
+                        {errors.gitProvider}
+                      </p>
+                    )}
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="gitBranch">Git Branch</Label>
@@ -307,7 +371,15 @@ export default function Page() {
                         handleInputChange("gitBranch", e.target.value)
                       }
                       placeholder="e.g., main, develop"
+                      className={
+                        errors.gitBranch
+                          ? "border-red-500 focus:border-red-500"
+                          : ""
+                      }
                     />
+                    {errors.gitBranch && (
+                      <p className="text-sm text-red-500">{errors.gitBranch}</p>
+                    )}
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="gitOwner">Repository Owner</Label>
@@ -318,7 +390,15 @@ export default function Page() {
                         handleInputChange("gitOwner", e.target.value)
                       }
                       placeholder="e.g., RafaB15"
+                      className={
+                        errors.gitOwner
+                          ? "border-red-500 focus:border-red-500"
+                          : ""
+                      }
                     />
+                    {errors.gitOwner && (
+                      <p className="text-sm text-red-500">{errors.gitOwner}</p>
+                    )}
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="gitRepositoryName">Repository Name</Label>
@@ -329,13 +409,23 @@ export default function Page() {
                         handleInputChange("gitRepositoryName", e.target.value)
                       }
                       placeholder="e.g., Distribuidos-TP"
+                      className={
+                        errors.gitRepositoryName
+                          ? "border-red-500 focus:border-red-500"
+                          : ""
+                      }
                     />
+                    {errors.gitRepositoryName && (
+                      <p className="text-sm text-red-500">
+                        {errors.gitRepositoryName}
+                      </p>
+                    )}
                   </div>
 
                   {hasAnyGitField && !areAllGitFieldsFilled && (
-                    <p className="text-sm text-destructive">
-                      All git fields must be filled if you provide any git
-                      information.
+                    <p className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
+                      <strong>Note:</strong> All git fields must be filled if
+                      you provide any git information.
                     </p>
                   )}
                 </CollapsibleContent>
