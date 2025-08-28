@@ -363,25 +363,6 @@ export default function Page() {
                     )}
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="gitBranch">Git Branch</Label>
-                    <Input
-                      id="gitBranch"
-                      value={formData.gitBranch}
-                      onChange={(e) =>
-                        handleInputChange("gitBranch", e.target.value)
-                      }
-                      placeholder="e.g., main, develop"
-                      className={
-                        errors.gitBranch
-                          ? "border-red-500 focus:border-red-500"
-                          : ""
-                      }
-                    />
-                    {errors.gitBranch && (
-                      <p className="text-sm text-red-500">{errors.gitBranch}</p>
-                    )}
-                  </div>
-                  <div className="grid gap-2">
                     <Label htmlFor="gitOwner">Repository Owner</Label>
                     <Input
                       id="gitOwner"
@@ -419,6 +400,25 @@ export default function Page() {
                       <p className="text-sm text-red-500">
                         {errors.gitRepositoryName}
                       </p>
+                    )}
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="gitBranch">Git Branch</Label>
+                    <Input
+                      id="gitBranch"
+                      value={formData.gitBranch}
+                      onChange={(e) =>
+                        handleInputChange("gitBranch", e.target.value)
+                      }
+                      placeholder="e.g., main, develop"
+                      className={
+                        errors.gitBranch
+                          ? "border-red-500 focus:border-red-500"
+                          : ""
+                      }
+                    />
+                    {errors.gitBranch && (
+                      <p className="text-sm text-red-500">{errors.gitBranch}</p>
                     )}
                   </div>
 
