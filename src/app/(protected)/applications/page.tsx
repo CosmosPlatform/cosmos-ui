@@ -29,7 +29,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Loader2 } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Plus,
+  Loader2,
+  ChevronDown,
+  ChevronRight,
+  GitBranch,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   getApplicationsWithFilter,
@@ -45,6 +56,7 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isGitSectionOpen, setIsGitSectionOpen] = useState(false);
   const router = useRouter();
 
   // Form state
@@ -52,29 +64,66 @@ export default function Page() {
     name: "",
     description: "",
     team: "",
+    gitProvider: "",
+    gitBranch: "",
+    gitRepository: "",
   });
 
-  // Load applications and teams on component mount
+  // Parse git repository URL to extract owner and name
+  const parseGitRepository = (url: string) => {
+    if (!url) return { owner: "", name: "" };
+
+    try {
+      const regex = /https:\/\/[^/]+\/([^/]+)\/([^/]+)/;
+      const match = url.match(regex);
+
+      if (match) {
+        return {
+          owner: match[1],
+          name: match[2],
+        };
+      }
+    } catch {
+      // Invalid URL format
+    }
+
+    return { owner: "", name: "" };
+  };
+
+  const { owner: gitOwner, name: gitName } = parseGitRepository(
+    formData.gitRepository,
+  );
+
+  // Check if any git field has content
+  const hasAnyGitField =
+    formData.gitProvider || formData.gitBranch || formData.gitRepository;
+
+  // Check if all git fields are filled when any is filled
+  const areAllGitFieldsFilled =
+    formData.gitProvider &&
+    formData.gitBranch &&
+    formData.gitRepository &&
+    gitOwner &&
+    gitName;
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
 
-      // Load applications (empty filter returns all)
       const appsResult = await getApplicationsWithFilter("");
       if (appsResult.error) {
         toast.error("Failed to load applications: " + appsResult.error.error);
-        setApplications([]); // Ensure it's always an array
+        setApplications([]);
       } else {
-        setApplications(appsResult.data?.applications || []); // Safe access with fallback
+        setApplications(appsResult.data?.applications || []);
       }
 
-      // Load teams for the form
       const teamsResult = await getTeams();
       if (teamsResult.error) {
         toast.error("Failed to load teams: " + teamsResult.error.error);
-        setTeams([]); // Ensure it's always an array
+        setTeams([]);
       } else {
-        setTeams(teamsResult.data?.teams || []); // Safe access with fallback
+        setTeams(teamsResult.data?.teams || []);
       }
 
       setLoading(false);
@@ -97,27 +146,54 @@ export default function Page() {
       return;
     }
 
+    // Validate git fields if any are filled
+    if (hasAnyGitField && !areAllGitFieldsFilled) {
+      toast.error(
+        "If you provide git information, all git fields must be filled and the repository URL must be valid",
+      );
+      return;
+    }
+
     setIsCreating(true);
 
-    const result = await createApplication({
+    const requestData: any = {
       name: formData.name.trim(),
       description: formData.description.trim(),
       team: formData.team,
-    });
+    };
+
+    // Add git information if all fields are provided
+    if (areAllGitFieldsFilled) {
+      requestData.gitInformation = {
+        provider: formData.gitProvider,
+        repositoryOwner: gitOwner,
+        repositoryName: gitName,
+        repositoryBranch: formData.gitBranch,
+      };
+    }
+
+    const result = await createApplication(requestData);
 
     if (result.error) {
       toast.error("Failed to create application: " + result.error.error);
     } else {
       toast.success("Application created successfully!");
 
-      // Add the new application to the list
       if (result.data?.application) {
         setApplications((prev) => [...prev, result.data.application]);
       }
 
       // Reset form and close dialog
-      setFormData({ name: "", description: "", team: "" });
+      setFormData({
+        name: "",
+        description: "",
+        team: "",
+        gitProvider: "",
+        gitBranch: "",
+        gitRepository: "",
+      });
       setIsDialogOpen(false);
+      setIsGitSectionOpen(false);
     }
 
     setIsCreating(false);
@@ -152,7 +228,7 @@ export default function Page() {
               Add Application
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[525px]">
             <DialogHeader>
               <DialogTitle>Create New Application</DialogTitle>
               <DialogDescription>
@@ -160,7 +236,7 @@ export default function Page() {
                 required information.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-4 py-4 max-h-[400px] overflow-y-auto">
               <div className="grid gap-2">
                 <Label htmlFor="name">Name</Label>
                 <Input
@@ -200,12 +276,112 @@ export default function Page() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Git Information Collapsible Section */}
+              <Collapsible
+                open={isGitSectionOpen}
+                onOpenChange={setIsGitSectionOpen}
+              >
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-between p-0 h-auto"
+                  >
+                    <div className="flex items-center gap-2">
+                      <GitBranch className="h-4 w-4" />
+                      <Label className="cursor-pointer">
+                        Git Information (Optional)
+                      </Label>
+                    </div>
+                    {isGitSectionOpen ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-4 mt-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="gitProvider">Git Provider</Label>
+                    <Select
+                      value={formData.gitProvider}
+                      onValueChange={(value) =>
+                        handleInputChange("gitProvider", value)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select git provider" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="github">GitHub</SelectItem>
+                        <SelectItem value="gitlab">GitLab</SelectItem>
+                        <SelectItem value="bitbucket">Bitbucket</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="gitBranch">Git Branch</Label>
+                    <Input
+                      id="gitBranch"
+                      value={formData.gitBranch}
+                      onChange={(e) =>
+                        handleInputChange("gitBranch", e.target.value)
+                      }
+                      placeholder="e.g., main, develop"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="gitRepository">Repository URL</Label>
+                    <Input
+                      id="gitRepository"
+                      value={formData.gitRepository}
+                      onChange={(e) =>
+                        handleInputChange("gitRepository", e.target.value)
+                      }
+                      placeholder="https://github.com/owner/repository"
+                    />
+                  </div>
+
+                  {/* Parsed repository information */}
+                  {formData.gitRepository && (gitOwner || gitName) && (
+                    <div className="bg-muted/50 p-3 rounded-lg">
+                      <h4 className="text-sm font-medium mb-2">
+                        Parsed Repository Info:
+                      </h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">Owner:</span>
+                          <span className="text-muted-foreground">
+                            {gitOwner || "Not found"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">Name:</span>
+                          <span className="text-muted-foreground">
+                            {gitName || "Not found"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {hasAnyGitField && !areAllGitFieldsFilled && (
+                    <p className="text-sm text-destructive">
+                      All git fields must be filled if you provide any git
+                      information.
+                    </p>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
             </div>
             <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setIsDialogOpen(false)}
+                onClick={() => {
+                  setIsDialogOpen(false);
+                  setIsGitSectionOpen(false);
+                }}
               >
                 Cancel
               </Button>

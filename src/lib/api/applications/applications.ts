@@ -9,12 +9,21 @@ export type Application = {
   name: string;
   description: string;
   team?: Team;
+  gitInformation?: GitInformation;
 };
 
 type CreateApplicationRequest = {
   name: string;
   description: string;
   team: string;
+  gitInformation?: GitInformation;
+};
+
+type GitInformation = {
+  provider: string;
+  repositoryOwner: string;
+  repositoryName: string;
+  repositoryBranch: string;
 };
 
 type CreateApplicationResponse = {
