@@ -94,3 +94,26 @@ export async function getApplicationsByTeam(
     `/applications/team/${teamName}`,
   );
 }
+
+// -----------------------------------------------------------------
+
+export type UpdateApplicationRequest = {
+  name: string;
+  description: string;
+  team: string;
+  gitInformation?: GitInformation;
+};
+
+export type UpdateApplicationResponse = {
+  application: Application;
+};
+
+export async function updateApplication(
+  name: string,
+  request: UpdateApplicationRequest,
+): Promise<ApiResult<UpdateApplicationResponse>> {
+  return sendRequestWithAuth<
+    UpdateApplicationRequest,
+    UpdateApplicationResponse
+  >("PUT", `/applications/${name}`, request);
+}
