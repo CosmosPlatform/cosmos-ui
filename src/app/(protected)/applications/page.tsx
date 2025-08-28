@@ -189,18 +189,8 @@ export default function Page() {
       }
 
       // Reset form and close dialog
-      setFormData({
-        name: "",
-        description: "",
-        team: "",
-        gitProvider: "",
-        gitBranch: "",
-        gitOwner: "",
-        gitRepositoryName: "",
-      });
-      setErrors({});
+      resetForm();
       setIsDialogOpen(false);
-      setIsGitSectionOpen(false);
     }
 
     setIsCreating(false);
@@ -211,6 +201,27 @@ export default function Page() {
     // Clear error for this field when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      description: "",
+      team: "",
+      gitProvider: "",
+      gitBranch: "",
+      gitOwner: "",
+      gitRepositoryName: "",
+    });
+    setErrors({});
+    setIsGitSectionOpen(false);
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      resetForm();
     }
   };
 
@@ -232,7 +243,7 @@ export default function Page() {
           </p>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -352,8 +363,6 @@ export default function Page() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="github">GitHub</SelectItem>
-                        <SelectItem value="gitlab">GitLab</SelectItem>
-                        <SelectItem value="bitbucket">Bitbucket</SelectItem>
                       </SelectContent>
                     </Select>
                     {errors.gitProvider && (
@@ -423,7 +432,7 @@ export default function Page() {
                   </div>
 
                   {hasAnyGitField && !areAllGitFieldsFilled && (
-                    <p className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
+                    <p className="text-sm text-muted-foreground bg-muted/50 p-2 rounded border">
                       <strong>Note:</strong> All git fields must be filled if
                       you provide any git information.
                     </p>
@@ -436,8 +445,7 @@ export default function Page() {
                 type="button"
                 variant="outline"
                 onClick={() => {
-                  setIsDialogOpen(false);
-                  setIsGitSectionOpen(false);
+                  handleDialogOpenChange(false);
                 }}
               >
                 Cancel
@@ -463,7 +471,7 @@ export default function Page() {
           <p className="text-muted-foreground mb-4">
             Get started by creating your first application
           </p>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
