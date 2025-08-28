@@ -66,45 +66,23 @@ export default function Page() {
     team: "",
     gitProvider: "",
     gitBranch: "",
-    gitRepository: "",
+    gitOwner: "",
+    gitRepositoryName: "",
   });
-
-  // Parse git repository URL to extract owner and name
-  const parseGitRepository = (url: string) => {
-    if (!url) return { owner: "", name: "" };
-
-    try {
-      const regex = /https:\/\/[^/]+\/([^/]+)\/([^/]+)/;
-      const match = url.match(regex);
-
-      if (match) {
-        return {
-          owner: match[1],
-          name: match[2],
-        };
-      }
-    } catch {
-      // Invalid URL format
-    }
-
-    return { owner: "", name: "" };
-  };
-
-  const { owner: gitOwner, name: gitName } = parseGitRepository(
-    formData.gitRepository,
-  );
 
   // Check if any git field has content
   const hasAnyGitField =
-    formData.gitProvider || formData.gitBranch || formData.gitRepository;
+    formData.gitProvider ||
+    formData.gitBranch ||
+    formData.gitOwner ||
+    formData.gitRepositoryName;
 
   // Check if all git fields are filled when any is filled
   const areAllGitFieldsFilled =
     formData.gitProvider &&
     formData.gitBranch &&
-    formData.gitRepository &&
-    gitOwner &&
-    gitName;
+    formData.gitOwner &&
+    formData.gitRepositoryName;
 
   useEffect(() => {
     const loadData = async () => {
@@ -166,8 +144,8 @@ export default function Page() {
     if (areAllGitFieldsFilled) {
       requestData.gitInformation = {
         provider: formData.gitProvider,
-        repositoryOwner: gitOwner,
-        repositoryName: gitName,
+        repositoryOwner: formData.gitOwner,
+        repositoryName: formData.gitRepositoryName,
         repositoryBranch: formData.gitBranch,
       };
     }
@@ -190,7 +168,8 @@ export default function Page() {
         team: "",
         gitProvider: "",
         gitBranch: "",
-        gitRepository: "",
+        gitOwner: "",
+        gitRepositoryName: "",
       });
       setIsDialogOpen(false);
       setIsGitSectionOpen(false);
@@ -331,39 +310,27 @@ export default function Page() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="gitRepository">Repository URL</Label>
+                    <Label htmlFor="gitOwner">Repository Owner</Label>
                     <Input
-                      id="gitRepository"
-                      value={formData.gitRepository}
+                      id="gitOwner"
+                      value={formData.gitOwner}
                       onChange={(e) =>
-                        handleInputChange("gitRepository", e.target.value)
+                        handleInputChange("gitOwner", e.target.value)
                       }
-                      placeholder="https://github.com/owner/repository"
+                      placeholder="e.g., RafaB15"
                     />
                   </div>
-
-                  {/* Parsed repository information */}
-                  {formData.gitRepository && (gitOwner || gitName) && (
-                    <div className="bg-muted/50 p-3 rounded-lg">
-                      <h4 className="text-sm font-medium mb-2">
-                        Parsed Repository Info:
-                      </h4>
-                      <div className="space-y-1 text-sm">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">Owner:</span>
-                          <span className="text-muted-foreground">
-                            {gitOwner || "Not found"}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">Name:</span>
-                          <span className="text-muted-foreground">
-                            {gitName || "Not found"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  <div className="grid gap-2">
+                    <Label htmlFor="gitRepositoryName">Repository Name</Label>
+                    <Input
+                      id="gitRepositoryName"
+                      value={formData.gitRepositoryName}
+                      onChange={(e) =>
+                        handleInputChange("gitRepositoryName", e.target.value)
+                      }
+                      placeholder="e.g., Distribuidos-TP"
+                    />
+                  </div>
 
                   {hasAnyGitField && !areAllGitFieldsFilled && (
                     <p className="text-sm text-destructive">
