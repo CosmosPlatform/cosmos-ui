@@ -18,6 +18,7 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
 } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { PageHeader } from "@/components/sidebar/page-header";
 import { getOwnUser, User } from "@/lib/api/users/users";
@@ -72,8 +73,32 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <PageHeader pageName="Cosmos" />
         </SidebarHeader>
         <SidebarContent>
-          <div>Loading...</div>
+          <SidebarGroup>
+            <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {[...Array(3)].map((_, index) => (
+                  <SidebarMenuItem key={index}>
+                    <div className="flex items-center space-x-3 p-2">
+                      <Skeleton className="h-4 w-4" />
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
         </SidebarContent>
+        <SidebarFooter>
+          <div className="flex items-center space-x-3 p-2">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-32" />
+            </div>
+          </div>
+        </SidebarFooter>
+        <SidebarRail />
       </Sidebar>
     );
   }
