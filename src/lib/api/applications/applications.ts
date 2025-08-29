@@ -9,12 +9,21 @@ export type Application = {
   name: string;
   description: string;
   team?: Team;
+  gitInformation?: GitInformation;
 };
 
 type CreateApplicationRequest = {
   name: string;
   description: string;
   team: string;
+  gitInformation?: GitInformation;
+};
+
+type GitInformation = {
+  provider: string;
+  repositoryOwner: string;
+  repositoryName: string;
+  repositoryBranch: string;
 };
 
 type CreateApplicationResponse = {
@@ -84,4 +93,27 @@ export async function getApplicationsByTeam(
     "GET",
     `/applications/team/${teamName}`,
   );
+}
+
+// -----------------------------------------------------------------
+
+export type UpdateApplicationRequest = {
+  name: string;
+  description: string;
+  team: string;
+  gitInformation?: GitInformation;
+};
+
+export type UpdateApplicationResponse = {
+  application: Application;
+};
+
+export async function updateApplication(
+  name: string,
+  request: UpdateApplicationRequest,
+): Promise<ApiResult<UpdateApplicationResponse>> {
+  return sendRequestWithAuth<
+    UpdateApplicationRequest,
+    UpdateApplicationResponse
+  >("PUT", `/applications/${name}`, request);
 }

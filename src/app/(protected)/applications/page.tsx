@@ -29,7 +29,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Loader2 } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Plus,
+  Loader2,
+  ChevronDown,
+  ChevronRight,
+  GitBranch,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   getApplicationsWithFilter,
@@ -45,6 +56,8 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isGitSectionOpen, setIsGitSectionOpen] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const router = useRouter();
 
   // Form state
@@ -52,29 +65,44 @@ export default function Page() {
     name: "",
     description: "",
     team: "",
+    gitProvider: "",
+    gitBranch: "",
+    gitOwner: "",
+    gitRepositoryName: "",
   });
 
-  // Load applications and teams on component mount
+  // Check if any git field has content
+  const hasAnyGitField =
+    formData.gitProvider ||
+    formData.gitBranch ||
+    formData.gitOwner ||
+    formData.gitRepositoryName;
+
+  // Check if all git fields are filled when any is filled
+  const areAllGitFieldsFilled =
+    formData.gitProvider &&
+    formData.gitBranch &&
+    formData.gitOwner &&
+    formData.gitRepositoryName;
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
 
-      // Load applications (empty filter returns all)
       const appsResult = await getApplicationsWithFilter("");
       if (appsResult.error) {
         toast.error("Failed to load applications: " + appsResult.error.error);
-        setApplications([]); // Ensure it's always an array
+        setApplications([]);
       } else {
-        setApplications(appsResult.data?.applications || []); // Safe access with fallback
+        setApplications(appsResult.data?.applications || []);
       }
 
-      // Load teams for the form
       const teamsResult = await getTeams();
       if (teamsResult.error) {
         toast.error("Failed to load teams: " + teamsResult.error.error);
-        setTeams([]); // Ensure it's always an array
+        setTeams([]);
       } else {
-        setTeams(teamsResult.data?.teams || []); // Safe access with fallback
+        setTeams(teamsResult.data?.teams || []);
       }
 
       setLoading(false);
@@ -87,36 +115,81 @@ export default function Page() {
     router.push(`/applications/${encodeURIComponent(applicationName)}`);
   };
 
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    // Validate required fields
+    if (!formData.name.trim()) {
+      newErrors.name = "Application name is required";
+    }
+    if (!formData.description.trim()) {
+      newErrors.description = "Description is required";
+    }
+
+    // Validate git fields if any are filled
+    if (hasAnyGitField) {
+      if (!formData.gitProvider) {
+        newErrors.gitProvider =
+          "Git provider is required when git information is provided";
+      }
+      if (!formData.gitBranch.trim()) {
+        newErrors.gitBranch =
+          "Git branch is required when git information is provided";
+      }
+      if (!formData.gitOwner.trim()) {
+        newErrors.gitOwner =
+          "Repository owner is required when git information is provided";
+      }
+      if (!formData.gitRepositoryName.trim()) {
+        newErrors.gitRepositoryName =
+          "Repository name is required when git information is provided";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleCreateApplication = async () => {
-    if (
-      !formData.name.trim() ||
-      !formData.description.trim() ||
-      !formData.team
-    ) {
-      toast.error("Please fill in all fields");
+    if (!validateForm()) {
       return;
     }
 
     setIsCreating(true);
 
-    const result = await createApplication({
+    const requestData: any = {
       name: formData.name.trim(),
       description: formData.description.trim(),
-      team: formData.team,
-    });
+    };
+
+    // Add team if selected
+    if (formData.team) {
+      requestData.team = formData.team;
+    }
+
+    // Add git information if all fields are provided
+    if (areAllGitFieldsFilled) {
+      requestData.gitInformation = {
+        provider: formData.gitProvider,
+        repositoryOwner: formData.gitOwner,
+        repositoryName: formData.gitRepositoryName,
+        repositoryBranch: formData.gitBranch,
+      };
+    }
+
+    const result = await createApplication(requestData);
 
     if (result.error) {
       toast.error("Failed to create application: " + result.error.error);
     } else {
       toast.success("Application created successfully!");
 
-      // Add the new application to the list
       if (result.data?.application) {
         setApplications((prev) => [...prev, result.data.application]);
       }
 
       // Reset form and close dialog
-      setFormData({ name: "", description: "", team: "" });
+      resetForm();
       setIsDialogOpen(false);
     }
 
@@ -125,6 +198,31 @@ export default function Page() {
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    // Clear error for this field when user starts typing
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      description: "",
+      team: "",
+      gitProvider: "",
+      gitBranch: "",
+      gitOwner: "",
+      gitRepositoryName: "",
+    });
+    setErrors({});
+    setIsGitSectionOpen(false);
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      resetForm();
+    }
   };
 
   if (loading) {
@@ -145,14 +243,14 @@ export default function Page() {
           </p>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
               Add Application
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[525px]">
             <DialogHeader>
               <DialogTitle>Create New Application</DialogTitle>
               <DialogDescription>
@@ -160,7 +258,7 @@ export default function Page() {
                 required information.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-4 py-4 max-h-[400px] overflow-y-auto">
               <div className="grid gap-2">
                 <Label htmlFor="name">Name</Label>
                 <Input
@@ -168,7 +266,13 @@ export default function Page() {
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   placeholder="Enter application name"
+                  className={
+                    errors.name ? "border-red-500 focus:border-red-500" : ""
+                  }
                 />
+                {errors.name && (
+                  <p className="text-sm text-red-500">{errors.name}</p>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="description">Description</Label>
@@ -180,7 +284,15 @@ export default function Page() {
                   }
                   placeholder="Enter application description"
                   rows={3}
+                  className={
+                    errors.description
+                      ? "border-red-500 focus:border-red-500"
+                      : ""
+                  }
                 />
+                {errors.description && (
+                  <p className="text-sm text-red-500">{errors.description}</p>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="team">Team</Label>
@@ -188,7 +300,11 @@ export default function Page() {
                   value={formData.team}
                   onValueChange={(value) => handleInputChange("team", value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger
+                    className={
+                      errors.team ? "border-red-500 focus:border-red-500" : ""
+                    }
+                  >
                     <SelectValue placeholder="Select a team" />
                   </SelectTrigger>
                   <SelectContent>
@@ -199,13 +315,138 @@ export default function Page() {
                     ))}
                   </SelectContent>
                 </Select>
+                {errors.team && (
+                  <p className="text-sm text-red-500">{errors.team}</p>
+                )}
               </div>
+
+              {/* Git Information Collapsible Section */}
+              <Collapsible
+                open={isGitSectionOpen}
+                onOpenChange={setIsGitSectionOpen}
+              >
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-between p-0 h-auto"
+                  >
+                    <div className="flex items-center gap-2">
+                      <GitBranch className="h-4 w-4" />
+                      <Label className="cursor-pointer">
+                        Git Information (Optional)
+                      </Label>
+                    </div>
+                    {isGitSectionOpen ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-4 mt-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="gitProvider">Git Provider</Label>
+                    <Select
+                      value={formData.gitProvider}
+                      onValueChange={(value) =>
+                        handleInputChange("gitProvider", value)
+                      }
+                    >
+                      <SelectTrigger
+                        className={
+                          errors.gitProvider
+                            ? "border-red-500 focus:border-red-500"
+                            : ""
+                        }
+                      >
+                        <SelectValue placeholder="Select git provider" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="github">GitHub</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.gitProvider && (
+                      <p className="text-sm text-red-500">
+                        {errors.gitProvider}
+                      </p>
+                    )}
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="gitOwner">Repository Owner</Label>
+                    <Input
+                      id="gitOwner"
+                      value={formData.gitOwner}
+                      onChange={(e) =>
+                        handleInputChange("gitOwner", e.target.value)
+                      }
+                      placeholder="e.g., RafaB15"
+                      className={
+                        errors.gitOwner
+                          ? "border-red-500 focus:border-red-500"
+                          : ""
+                      }
+                    />
+                    {errors.gitOwner && (
+                      <p className="text-sm text-red-500">{errors.gitOwner}</p>
+                    )}
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="gitRepositoryName">Repository Name</Label>
+                    <Input
+                      id="gitRepositoryName"
+                      value={formData.gitRepositoryName}
+                      onChange={(e) =>
+                        handleInputChange("gitRepositoryName", e.target.value)
+                      }
+                      placeholder="e.g., Distribuidos-TP"
+                      className={
+                        errors.gitRepositoryName
+                          ? "border-red-500 focus:border-red-500"
+                          : ""
+                      }
+                    />
+                    {errors.gitRepositoryName && (
+                      <p className="text-sm text-red-500">
+                        {errors.gitRepositoryName}
+                      </p>
+                    )}
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="gitBranch">Git Branch</Label>
+                    <Input
+                      id="gitBranch"
+                      value={formData.gitBranch}
+                      onChange={(e) =>
+                        handleInputChange("gitBranch", e.target.value)
+                      }
+                      placeholder="e.g., main, develop"
+                      className={
+                        errors.gitBranch
+                          ? "border-red-500 focus:border-red-500"
+                          : ""
+                      }
+                    />
+                    {errors.gitBranch && (
+                      <p className="text-sm text-red-500">{errors.gitBranch}</p>
+                    )}
+                  </div>
+
+                  {hasAnyGitField && !areAllGitFieldsFilled && (
+                    <p className="text-sm text-muted-foreground bg-muted/50 p-2 rounded border">
+                      <strong>Note:</strong> All git fields must be filled if
+                      you provide any git information.
+                    </p>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
             </div>
             <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setIsDialogOpen(false)}
+                onClick={() => {
+                  handleDialogOpenChange(false);
+                }}
               >
                 Cancel
               </Button>
@@ -230,7 +471,7 @@ export default function Page() {
           <p className="text-muted-foreground mb-4">
             Get started by creating your first application
           </p>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
