@@ -40,7 +40,9 @@ import {
   ChevronDown,
   ChevronRight,
   GitBranch,
+  AlertCircle,
 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import {
   getApplicationsWithFilter,
@@ -58,6 +60,8 @@ export default function Page() {
   const [isCreating, setIsCreating] = useState(false);
   const [isGitSectionOpen, setIsGitSectionOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [createApplicationError, setCreateApplicationError] =
+    useState<string>("");
   const router = useRouter();
 
   // Form state
@@ -151,6 +155,8 @@ export default function Page() {
   };
 
   const handleCreateApplication = async () => {
+    setCreateApplicationError("");
+
     if (!validateForm()) {
       return;
     }
@@ -180,7 +186,9 @@ export default function Page() {
     const result = await createApplication(requestData);
 
     if (result.error) {
-      toast.error("Failed to create application: " + result.error.error);
+      setCreateApplicationError(
+        result.error.error || "Failed to create application",
+      );
     } else {
       toast.success("Application created successfully!");
 
@@ -215,6 +223,7 @@ export default function Page() {
       gitRepositoryName: "",
     });
     setErrors({});
+    setCreateApplicationError("");
     setIsGitSectionOpen(false);
   };
 
@@ -258,6 +267,14 @@ export default function Page() {
                 required information.
               </DialogDescription>
             </DialogHeader>
+
+            {createApplicationError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{createApplicationError}</AlertDescription>
+              </Alert>
+            )}
+
             <div className="grid gap-4 py-4 max-h-[400px] overflow-y-auto">
               <div className="grid gap-2">
                 <Label htmlFor="name">Name</Label>
