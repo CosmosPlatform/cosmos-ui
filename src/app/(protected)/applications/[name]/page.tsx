@@ -531,17 +531,15 @@ export default function ApplicationDetailPage() {
 
                 <div>
                   {/* No interactions message */}
-                  {interactions.applicationsToProvide.length === 0 &&
-                    interactions.applicationsToConsume.length === 0 &&
-                    interactions.dependencies.length === 0 && (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Network className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <p>No application interactions found.</p>
-                        <p className="text-sm">
-                          Try updating the monitoring to discover interactions.
-                        </p>
-                      </div>
-                    )}
+                  {interactions.dependencies.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Network className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>No application interactions found.</p>
+                      <p className="text-sm">
+                        Try updating the monitoring to discover interactions.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (

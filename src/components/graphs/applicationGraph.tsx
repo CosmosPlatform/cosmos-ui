@@ -22,6 +22,8 @@ const elkOptions = {
   "elk.direction": "RIGHT", // graph direction: RIGHT, DOWN, UP, LEFT
   "elk.edgeRouting": "ORTHOGONAL", // routes edges around nodes
   "elk.layered.spacing.nodeNodeBetweenLayers": "200",
+  "elk.spacing.nodeNode": "100",
+  "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
 };
 
 async function layoutGraph(
@@ -67,58 +69,33 @@ export default function ApplicationGraph({
   const [isLayouting, setIsLayouting] = useState(true);
 
   const { initialNodes, initialEdges } = useMemo(() => {
-    const nodeMap = new Map<string, Node>();
     const edges: Edge[] = [];
 
-    const getOrCreateNode = (appName: string, isMainApp = false): Node => {
-      if (nodeMap.has(appName)) {
-        return nodeMap.get(appName)!;
+    const createNodes = (): Node[] => {
+      const nodes: Node[] = [];
+      const mainApp = applicationData.mainApplication;
+
+      for (const appName in applicationData.applicationsInvolved) {
+        const appInfo = applicationData.applicationsInvolved[appName];
+        const isMainApp = appName === mainApp;
+        const node: Node = {
+          id: appName,
+          position: { x: 0, y: 0 },
+          data: {
+            applicationName: appName,
+            applicationTeam: appInfo.team,
+            standOut: isMainApp,
+          },
+          type: "applicationNode",
+        };
+        nodes.push(node);
       }
-
-      let team = "";
-      if (isMainApp) {
-        team = applicationData.mainApplication.team;
-      } else {
-        const foundInProvide = applicationData.applicationsToProvide.find(
-          (app) => app.name === appName,
-        );
-        if (foundInProvide) {
-          team = foundInProvide.team;
-        } else {
-          const foundInConsume = applicationData.applicationsToConsume.find(
-            (app) => app.name === appName,
-          );
-          if (foundInConsume) {
-            team = foundInConsume.team;
-          }
-        }
-      }
-
-      const node: Node = {
-        id: appName,
-        position: { x: 0, y: 0 },
-        data: {
-          applicationName: appName,
-          applicationTeam: team,
-          standOut: isMainApp,
-        },
-        type: "applicationNode",
-      };
-
-      nodeMap.set(appName, node);
-      return node;
+      return nodes;
     };
 
-    const mainAppNode = getOrCreateNode(
-      applicationData.mainApplication.name,
-      true,
-    );
+    const nodes = createNodes();
 
     applicationData.dependencies.forEach((dependency, index) => {
-      const consumerNode = getOrCreateNode(dependency.consumer);
-
-      const providerNode = getOrCreateNode(dependency.provider);
-
       const edgeId = `${dependency.consumer}-${dependency.provider}`;
       const edge: Edge = {
         id: edgeId,
@@ -138,8 +115,6 @@ export default function ApplicationGraph({
 
       edges.push(edge);
     });
-
-    const nodes = Array.from(nodeMap.values());
 
     return { initialNodes: nodes, initialEdges: edges };
   }, [applicationData]);

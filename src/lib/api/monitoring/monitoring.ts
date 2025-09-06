@@ -12,9 +12,8 @@ export async function updateApplicationMonitoring(
 // -----------------------------------------------------------------
 
 export type GetApplicationInteractionsResponse = {
-  mainApplication: ApplicationInformation;
-  applicationsToProvide: ApplicationInformation[];
-  applicationsToConsume: ApplicationInformation[];
+  mainApplication: string;
+  applicationsInvolved: Record<string, ApplicationInformation>;
   dependencies: ApplicationDependency[];
 };
 
