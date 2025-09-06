@@ -2,6 +2,11 @@ import { GetApplicationInteractionsResponse } from "@/lib/api/monitoring/monitor
 import { ReactFlow, Background, Controls, Edge, Node } from "@xyflow/react";
 import { useMemo } from "react";
 import "@xyflow/react/dist/style.css";
+import ApplicationNode from "./applicationNode";
+
+const nodeTypes = {
+  applicationNode: ApplicationNode,
+};
 
 interface ApplicationGraphProps {
   applicationData: GetApplicationInteractionsResponse;
@@ -37,17 +42,11 @@ export default function ApplicationGraph({
         id: appName,
         position: { x: 0, y: 0 },
         data: {
-          label: team ? `${appName}\n(${team})` : appName,
+          applicationName: appName,
+          applicationTeam: team,
+          standOut: isMainApp,
         },
-        style: {
-          backgroundColor: isMainApp ? "#3b82f6" : "#6b7280",
-          color: "white",
-          border: `2px solid ${isMainApp ? "#1e40af" : "#4b5563"}`,
-          borderRadius: "8px",
-          padding: "10px",
-          fontSize: "12px",
-          textAlign: "center",
-        },
+        type: "applicationNode",
       };
 
       nodeMap.set(appName, node);
@@ -108,6 +107,7 @@ export default function ApplicationGraph({
   return (
     <div className="w-full aspect-[16/9] min-h-96">
       <ReactFlow
+        nodeTypes={nodeTypes}
         nodes={nodes}
         edges={edges}
         fitView
