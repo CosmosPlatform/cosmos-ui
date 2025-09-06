@@ -1,14 +1,5 @@
 import { GetApplicationInteractionsResponse } from "@/lib/api/monitoring/monitoring";
-import { useState, useCallback } from "react";
-import {
-  ReactFlow,
-  Background,
-  Controls,
-  applyEdgeChanges,
-  applyNodeChanges,
-  Edge,
-  Node,
-} from "@xyflow/react";
+import { ReactFlow, Background, Controls, Edge, Node } from "@xyflow/react";
 import { useMemo } from "react";
 import "@xyflow/react/dist/style.css";
 
