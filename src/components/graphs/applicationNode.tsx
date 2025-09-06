@@ -1,6 +1,5 @@
 import { memo } from "react";
 
-import { Button } from "@/components/ui/button";
 import {
   BaseNode,
   BaseNodeContent,
@@ -33,8 +32,8 @@ const ApplicationNode = memo(({ data }: ApplicationNodeProps) => {
             {applicationName}
           </h3>
         </BaseNodeContent>
-        <Handle type="target" position={Position.Top} />
-        <Handle type="source" position={Position.Bottom} />
+        <Handle type="target" position={Position.Left} />
+        <Handle type="source" position={Position.Right} />
       </BaseNode>
     );
   }
@@ -54,8 +53,8 @@ const ApplicationNode = memo(({ data }: ApplicationNodeProps) => {
           {applicationName}
         </h3>
       </BaseNodeContent>
-      <Handle type="target" position={Position.Top} />
-      <Handle type="source" position={Position.Bottom} />
+      <Handle type="target" position={Position.Left} />
+      <Handle type="source" position={Position.Right} />
     </BaseNode>
   );
 });
