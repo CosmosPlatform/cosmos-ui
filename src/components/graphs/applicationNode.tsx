@@ -53,8 +53,8 @@ const ApplicationNode = memo(({ data }: ApplicationNodeProps) => {
           {applicationName}
         </h3>
       </BaseNodeContent>
-      <Handle type="target" position={Position.Left} />
-      <Handle type="source" position={Position.Right} />
+      <Handle type="target" position={Position.Left} className="invisible" />
+      <Handle type="source" position={Position.Right} className="invisible" />
     </BaseNode>
   );
 });
