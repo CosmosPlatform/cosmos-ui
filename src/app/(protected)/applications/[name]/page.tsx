@@ -524,10 +524,12 @@ export default function ApplicationDetailPage() {
             ) : interactions ? (
               <div className="space-y-6 h-full w-full">
                 {/* Graph Visualization */}
-                <div className="h-full w-full">
-                  <h4 className="font-semibold mb-4">Interaction Graph</h4>
-                  <ApplicationGraph applicationData={interactions} />
-                </div>
+                {interactions.dependencies.length > 0 && (
+                  <div className="h-full w-full">
+                    <h4 className="font-semibold mb-4">Interaction Graph</h4>
+                    <ApplicationGraph applicationData={interactions} />
+                  </div>
+                )}
 
                 <div>
                   {/* No interactions message */}

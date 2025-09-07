@@ -95,7 +95,7 @@ export default function ApplicationGraph({
 
     const nodes = createNodes();
 
-    applicationData.dependencies.forEach((dependency, index) => {
+    applicationData.dependencies.forEach((dependency, _index) => {
       const edgeId = `${dependency.consumer}-${dependency.provider}`;
       const edge: Edge = {
         id: edgeId,
