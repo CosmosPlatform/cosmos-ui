@@ -4,6 +4,7 @@ import { useMemo, useEffect, useState } from "react";
 import "@xyflow/react/dist/style.css";
 import ApplicationNode from "./applicationNode";
 import { Loader2 } from "lucide-react";
+import { useTheme } from "next-themes";
 
 const nodeTypes = {
   applicationNode: ApplicationNode,
@@ -68,6 +69,7 @@ export default function ApplicationGraph({
   const [layoutedNodes, setLayoutedNodes] = useState<Node[]>([]);
   const [layoutedEdges, setLayoutedEdges] = useState<Edge[]>([]);
   const [isLayouting, setIsLayouting] = useState(true);
+  const { theme } = useTheme();
 
   const { initialNodes, initialEdges } = useMemo(() => {
     const edges: Edge[] = [];
@@ -167,8 +169,9 @@ export default function ApplicationGraph({
         fitView
         fitViewOptions={{ padding: 0.2 }}
         preventScrolling={false}
-        zoomOnScroll={false} // Disable zooming with scroll
+        zoomOnScroll={false}
         panOnScroll={false}
+        colorMode={theme === "dark" ? "dark" : "light"}
       >
         <Background />
         <ZoomSlider position="top-left" />
