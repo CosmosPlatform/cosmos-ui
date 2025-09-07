@@ -14,6 +14,7 @@ interface ApplicationGraphProps {
 }
 
 import ELK from "elkjs";
+import { ZoomSlider } from "../flow/zoom-slider";
 
 const elk = new ELK();
 
@@ -167,7 +168,7 @@ export default function ApplicationGraph({
         fitViewOptions={{ padding: 0.2 }}
       >
         <Background />
-        <Controls />
+        <ZoomSlider position="top-left" />
       </ReactFlow>
     </div>
   );
