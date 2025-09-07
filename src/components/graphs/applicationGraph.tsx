@@ -166,6 +166,9 @@ export default function ApplicationGraph({
         edges={layoutedEdges}
         fitView
         fitViewOptions={{ padding: 0.2 }}
+        preventScrolling={false}
+        zoomOnScroll={false} // Disable zooming with scroll
+        panOnScroll={false}
       >
         <Background />
         <ZoomSlider position="top-left" />
