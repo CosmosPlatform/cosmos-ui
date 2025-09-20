@@ -37,8 +37,8 @@ async function layoutGraph(
     layoutOptions: elkOptions,
     children: nodes.map((node) => ({
       id: node.id,
-      width: node.height || 30,
-      height: node.width || 30,
+      width: node.width || 30,
+      height: node.height || 30,
     })),
     edges: edges.map((edge) => ({
       id: edge.id,
@@ -113,7 +113,7 @@ export default function ApplicationGraph({
           fontSize: "10px",
           fill: "#4b5563",
         },
-        type: "smoothstep",
+        type: "bezier",
       };
 
       edges.push(edge);
