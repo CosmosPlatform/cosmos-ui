@@ -1,5 +1,5 @@
 import { GetApplicationInteractionsResponse } from "@/lib/api/monitoring/monitoring";
-import { ReactFlow, Background, Controls, Edge, Node } from "@xyflow/react";
+import { ReactFlow, Background, Edge, Node } from "@xyflow/react";
 import { useMemo, useEffect, useState } from "react";
 import "@xyflow/react/dist/style.css";
 import ApplicationNode from "./applicationNode";

@@ -45,3 +45,34 @@ export async function getApplicationInteractions(
     `/monitoring/interactions/${application}`,
   );
 }
+
+// -----------------------------------------------------------------
+
+export type GetApplicationsInteractionsRequest = {
+  teams?: string[];
+  includeNeighbors?: boolean;
+};
+
+export type GetApplicationsInteractionsResponse = {
+  applicationsInvolved: Record<string, ApplicationInformation>;
+  dependencies: ApplicationDependency[];
+};
+
+export async function getApplicationsInteractions(
+  request: GetApplicationsInteractionsRequest,
+): Promise<ApiResult<GetApplicationsInteractionsResponse>> {
+  const queryParams: Record<string, string> = {};
+
+  if (request.teams && request.teams.length > 0) {
+    queryParams.teams = request.teams.join(",");
+  }
+
+  if (request.includeNeighbors !== undefined) {
+    queryParams.includeNeighbors = request.includeNeighbors.toString();
+  }
+
+  return sendRequestWithAuth<
+    GetApplicationsInteractionsRequest,
+    GetApplicationsInteractionsResponse
+  >("GET", "/monitoring/interactions", null, queryParams);
+}
