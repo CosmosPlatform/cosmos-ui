@@ -632,7 +632,7 @@ export default function ApplicationDetailPage() {
               <CollapsibleTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="w-full justify-between p-0 h-auto"
+                  className="w-full justify-between p-0 h-auto min-h-12"
                 >
                   <div className="flex items-center gap-2">
                     <GitBranch className="h-4 w-4" />
