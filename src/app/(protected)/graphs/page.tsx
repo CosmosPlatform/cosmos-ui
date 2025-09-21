@@ -247,13 +247,7 @@ export default function GraphsPage() {
             ) : interactions ? (
               <div className="h-full w-full">
                 {interactions.dependencies.length > 0 ? (
-                  <ApplicationGraph
-                    applicationData={{
-                      mainApplication: "",
-                      applicationsInvolved: interactions.applicationsInvolved,
-                      dependencies: interactions.dependencies,
-                    }}
-                  />
+                  <ApplicationGraph applicationData={interactions} />
                 ) : (
                   <div className="text-center py-12 text-muted-foreground">
                     <Network className="h-12 w-12 mx-auto mb-4 opacity-50" />

@@ -527,7 +527,10 @@ export default function ApplicationDetailPage() {
                 {interactions.dependencies.length > 0 && (
                   <div className="h-full w-full">
                     <h4 className="font-semibold mb-4">Interaction Graph</h4>
-                    <ApplicationGraph applicationData={interactions} />
+                    <ApplicationGraph
+                      applicationData={interactions}
+                      mainApplication={application.name}
+                    />
                   </div>
                 )}
 

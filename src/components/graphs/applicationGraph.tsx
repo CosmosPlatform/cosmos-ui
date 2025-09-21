@@ -1,4 +1,4 @@
-import { GetApplicationInteractionsResponse } from "@/lib/api/monitoring/monitoring";
+import { GetApplicationsInteractionsResponse } from "@/lib/api/monitoring/monitoring";
 import { ReactFlow, Background, Edge, Node } from "@xyflow/react";
 import { useMemo, useEffect, useState } from "react";
 import "@xyflow/react/dist/style.css";
@@ -11,7 +11,8 @@ const nodeTypes = {
 };
 
 interface ApplicationGraphProps {
-  applicationData: GetApplicationInteractionsResponse;
+  mainApplication?: string;
+  applicationData: GetApplicationsInteractionsResponse;
 }
 
 import ELK from "elkjs";
@@ -64,6 +65,7 @@ async function layoutGraph(
 }
 
 export default function ApplicationGraph({
+  mainApplication,
   applicationData,
 }: ApplicationGraphProps) {
   const [layoutedNodes, setLayoutedNodes] = useState<Node[]>([]);
@@ -76,11 +78,10 @@ export default function ApplicationGraph({
 
     const createNodes = (): Node[] => {
       const nodes: Node[] = [];
-      const mainApp = applicationData.mainApplication;
 
       for (const appName in applicationData.applicationsInvolved) {
         const appInfo = applicationData.applicationsInvolved[appName];
-        const isMainApp = appName === mainApp;
+        const isMainApp = appName === mainApplication;
         const node: Node = {
           id: appName,
           position: { x: 0, y: 0 },
