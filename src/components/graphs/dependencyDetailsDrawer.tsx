@@ -9,13 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ArrowRight, Globe, Zap } from "lucide-react";
-import { GetApplicationsInteractionsResponse } from "@/lib/api/monitoring/monitoring";
-
-// Extract types from the response type
-type ApplicationDependency =
-  GetApplicationsInteractionsResponse["dependencies"][0];
-type ApplicationInformation =
-  GetApplicationsInteractionsResponse["applicationsInvolved"][string];
+import {
+  ApplicationDependency,
+  ApplicationInformation,
+} from "@/lib/api/monitoring/monitoring";
 
 interface DependencyDetailsDrawerProps {
   isOpen: boolean;
@@ -56,7 +53,7 @@ export default function DependencyDetailsDrawer({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-6 py-4 px-2">
           {/* Dependency Flow */}
           <Card>
             <CardHeader>
@@ -135,10 +132,10 @@ export default function DependencyDetailsDrawer({
                   {endpointEntries.map(([endpoint, methods], endpointIndex) => (
                     <div key={endpointIndex} className="space-y-2">
                       <div className="font-medium text-sm">{endpoint}</div>
-                      <div className="ml-4 space-y-2">
+                      <div className="ml-4 space-y-3">
                         {Object.entries(methods).map(
                           ([method, details], methodIndex) => (
-                            <div key={methodIndex} className="space-y-1">
+                            <div key={methodIndex} className="space-y-2">
                               <div className="flex items-center gap-2">
                                 <Badge variant="secondary" className="text-xs">
                                   {method.toUpperCase()}

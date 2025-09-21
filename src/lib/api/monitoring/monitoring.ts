@@ -17,12 +17,12 @@ export type GetApplicationInteractionsResponse = {
   dependencies: ApplicationDependency[];
 };
 
-type ApplicationInformation = {
+export type ApplicationInformation = {
   name: string;
   team: string;
 };
 
-type ApplicationDependency = {
+export type ApplicationDependency = {
   consumer: string;
   provider: string;
   reasons?: string[];
