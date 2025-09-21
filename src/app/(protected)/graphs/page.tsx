@@ -13,18 +13,13 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
-  Network,
-  RefreshCw,
-  Loader2,
-  Filter,
-  ChevronDown,
-  ChevronRight,
-} from "lucide-react";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Network, RefreshCw, Loader2, Filter, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import {
   getApplicationsInteractions,
@@ -41,13 +36,13 @@ type Team = {
 export default function GraphsPage() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
+  const [tempSelectedTeams, setTempSelectedTeams] = useState<string[]>([]); // Temporary selection for dropdown
   const [includeNeighbors, setIncludeNeighbors] = useState(false);
   const [interactions, setInteractions] =
     useState<GetApplicationsInteractionsResponse | null>(null);
 
   const [loadingTeams, setLoadingTeams] = useState(true);
   const [loadingInteractions, setLoadingInteractions] = useState(false);
-  const [isFiltersOpen, setIsFiltersOpen] = useState(true);
 
   // Load teams on component mount
   useEffect(() => {
@@ -61,8 +56,9 @@ export default function GraphsPage() {
       } else {
         const teamsData = result.data?.teams || [];
         setTeams(teamsData);
-        // By default, select all teams
-        setSelectedTeams(teamsData.map((team) => team.name));
+        // Start with no teams selected (which shows all applications)
+        setSelectedTeams([]);
+        setTempSelectedTeams([]);
       }
 
       setLoadingTeams(false);
@@ -76,7 +72,7 @@ export default function GraphsPage() {
     if (!loadingTeams) {
       loadInteractions();
     }
-  }, [selectedTeams, includeNeighbors, loadingTeams, teams]);
+  }, [selectedTeams, includeNeighbors, loadingTeams]);
 
   const loadInteractions = async () => {
     setLoadingInteractions(true);
@@ -98,25 +94,28 @@ export default function GraphsPage() {
   };
 
   const handleTeamToggle = (teamName: string, checked: boolean) => {
-    setSelectedTeams((prev) => {
-      if (checked) {
-        return [...prev, teamName];
-      } else {
-        return prev.filter((name) => name !== teamName);
-      }
-    });
+    if (checked) {
+      setTempSelectedTeams((prev) => [...prev, teamName]);
+    } else {
+      setTempSelectedTeams((prev) => prev.filter((name) => name !== teamName));
+    }
   };
 
-  const handleSelectAllTeams = () => {
-    setSelectedTeams(teams.map((team) => team.name));
+  const handleDropdownOpenChange = (open: boolean) => {
+    if (open) {
+      // When opening, sync temp state with current state
+      setTempSelectedTeams(selectedTeams);
+    } else {
+      // When closing, apply temp state to actual state
+      setSelectedTeams(tempSelectedTeams);
+    }
   };
 
-  const handleDeselectAllTeams = () => {
-    setSelectedTeams([]);
+  const getSelectedTeamsDisplay = () => {
+    if (selectedTeams.length === 0) return "All teams";
+    if (selectedTeams.length === 1) return selectedTeams[0];
+    return `${selectedTeams.length} teams selected`;
   };
-
-  const allTeamsSelected = selectedTeams.length === teams.length;
-  const noTeamsSelected = selectedTeams.length === 0;
 
   return (
     <div className="container mx-auto p-6">
@@ -128,132 +127,94 @@ export default function GraphsPage() {
       </div>
 
       <div className="grid gap-6">
-        {/* Filters Card */}
-        <Card>
-          <Collapsible open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Filter className="h-5 w-5" />
-                    <CardTitle>Filters</CardTitle>
-                  </div>
-                  {isFiltersOpen ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                </div>
-                <CardDescription>
-                  Configure which teams and interactions to display
-                </CardDescription>
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent className="space-y-6">
-                {/* Teams Selection */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-base font-medium">Teams</Label>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleSelectAllTeams}
-                        disabled={allTeamsSelected || loadingTeams}
-                      >
-                        Select All
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleDeselectAllTeams}
-                        disabled={noTeamsSelected || loadingTeams}
-                      >
-                        Deselect All
-                      </Button>
-                    </div>
-                  </div>
+        {/* Compact Filters Bar */}
+        <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4" />
+            <Label className="font-medium">Filters:</Label>
+          </div>
+          {/* Teams Dropdown */}
+          <DropdownMenu onOpenChange={handleDropdownOpenChange}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="min-w-48 justify-between">
+                {getSelectedTeamsDisplay()}
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-64 max-h-80 overflow-y-auto">
+              <DropdownMenuLabel>Select Teams</DropdownMenuLabel>
+              <DropdownMenuSeparator />
 
-                  {loadingTeams ? (
-                    <div className="flex items-center justify-center py-4">
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      <span>Loading teams...</span>
-                    </div>
-                  ) : teams.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {teams.map((team) => (
-                        <div
-                          key={team.name}
-                          className="flex items-center space-x-2 p-3 rounded-lg border"
-                        >
-                          <Checkbox
-                            id={`team-${team.name}`}
-                            checked={selectedTeams.includes(team.name)}
-                            onCheckedChange={(checked) =>
-                              handleTeamToggle(team.name, checked as boolean)
-                            }
-                          />
-                          <div className="flex-1 min-w-0">
-                            <Label
-                              htmlFor={`team-${team.name}`}
-                              className="font-medium cursor-pointer"
-                            >
-                              {team.name}
-                            </Label>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {team.description}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-4 text-muted-foreground">
-                      No teams available
-                    </div>
-                  )}
+              {loadingTeams ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <span className="text-sm">Loading teams...</span>
                 </div>
-
-                {/* Include Neighbors Switch */}
-                <div className="flex items-center justify-between p-4 rounded-lg border">
-                  <div className="space-y-1">
-                    <Label htmlFor="include-neighbors" className="font-medium">
-                      Include Neighbors
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Include applications outside selected teams that interact
-                      with them
-                    </p>
-                  </div>
-                  <Switch
-                    id="include-neighbors"
-                    checked={includeNeighbors}
-                    onCheckedChange={setIncludeNeighbors}
-                  />
-                </div>
-
-                {/* Refresh Button */}
-                <div className="flex justify-end">
-                  <Button
-                    onClick={loadInteractions}
-                    disabled={loadingInteractions}
-                    className="min-w-32"
+              ) : teams.length > 0 ? (
+                teams.map((team) => (
+                  <div
+                    key={team.name}
+                    className="flex items-start space-x-2 px-3 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                    onClick={() =>
+                      handleTeamToggle(
+                        team.name,
+                        !tempSelectedTeams.includes(team.name),
+                      )
+                    }
                   >
-                    {loadingInteractions ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4" />
-                    )}
-                    <span className="ml-2">
-                      {loadingInteractions ? "Loading..." : "Refresh"}
-                    </span>
-                  </Button>
+                    <Checkbox
+                      id={`team-${team.name}`}
+                      checked={tempSelectedTeams.includes(team.name)}
+                      onCheckedChange={(checked) =>
+                        handleTeamToggle(team.name, checked as boolean)
+                      }
+                      onClick={(e) => e.stopPropagation()} // Prevent double toggle
+                    />
+                    <div className="flex flex-col items-start flex-1">
+                      <Label
+                        htmlFor={`team-${team.name}`}
+                        className="font-medium cursor-pointer"
+                      >
+                        {team.name}
+                      </Label>
+                      <span className="text-xs text-muted-foreground">
+                        {team.description}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-muted-foreground text-sm">
+                  No teams available
                 </div>
-              </CardContent>
-            </CollapsibleContent>
-          </Collapsible>
-        </Card>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>{" "}
+          {/* Include Neighbors Switch */}
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="include-neighbors"
+              checked={includeNeighbors}
+              onCheckedChange={setIncludeNeighbors}
+            />
+            <Label htmlFor="include-neighbors" className="text-sm">
+              Include Neighbors
+            </Label>
+          </div>
+          {/* Refresh Button */}
+          <Button
+            onClick={loadInteractions}
+            disabled={loadingInteractions}
+            variant="outline"
+            size="sm"
+          >
+            {loadingInteractions ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
 
         {/* Graph Card */}
         <Card className="h-full w-full">
@@ -263,14 +224,17 @@ export default function GraphsPage() {
               <CardTitle>Interactions Graph</CardTitle>
             </div>
             <CardDescription>
-              {selectedTeams.length > 0 ? (
+              {selectedTeams.length === 0 ? (
+                <>
+                  Showing interactions for all teams
+                  {includeNeighbors && " (including neighbors)"}
+                </>
+              ) : (
                 <>
                   Showing interactions for {selectedTeams.length} team(s):{" "}
                   {selectedTeams.join(", ")}
                   {includeNeighbors && " (including neighbors)"}
                 </>
-              ) : (
-                "Select teams to view their application interactions"
               )}
             </CardDescription>
           </CardHeader>
@@ -298,25 +262,18 @@ export default function GraphsPage() {
                     </h3>
                     <p>
                       No application interactions were found for the selected
-                      teams.
+                      {selectedTeams.length === 0 ? " configuration" : " teams"}
+                      .
                     </p>
                     <p className="text-sm mt-2">
-                      Try selecting different teams or enabling "Include
-                      Neighbors".
+                      Try{" "}
+                      {selectedTeams.length === 0
+                        ? "selecting specific teams"
+                        : "selecting different teams"}{" "}
+                      or toggling "Include Neighbors".
                     </p>
                   </div>
                 )}
-              </div>
-            ) : noTeamsSelected ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <Filter className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <h3 className="text-lg font-semibold mb-2">
-                  Select teams to view interactions
-                </h3>
-                <p>
-                  Choose one or more teams from the filters above to display
-                  their application interactions.
-                </p>
               </div>
             ) : (
               <div className="text-center py-12 text-muted-foreground">
