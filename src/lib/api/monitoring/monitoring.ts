@@ -53,9 +53,13 @@ export type GetApplicationsInteractionsRequest = {
   includeNeighbors?: boolean;
 };
 
+export type ApplicationsInvolved = Record<string, ApplicationInformation>;
+
+export type ApplicationDependencies = ApplicationDependency[];
+
 export type GetApplicationsInteractionsResponse = {
-  applicationsInvolved: Record<string, ApplicationInformation>;
-  dependencies: ApplicationDependency[];
+  applicationsInvolved: ApplicationsInvolved;
+  dependencies: ApplicationDependencies;
 };
 
 export async function getApplicationsInteractions(

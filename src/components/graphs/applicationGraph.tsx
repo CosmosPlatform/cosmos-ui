@@ -1,8 +1,9 @@
 import { GetApplicationsInteractionsResponse } from "@/lib/api/monitoring/monitoring";
 import { ReactFlow, Background, Edge, Node } from "@xyflow/react";
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, useCallback } from "react";
 import "@xyflow/react/dist/style.css";
 import ApplicationNode from "./applicationNode";
+import DependencyDetailsDrawer from "./dependencyDetailsDrawer";
 import { Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -71,7 +72,28 @@ export default function ApplicationGraph({
   const [layoutedNodes, setLayoutedNodes] = useState<Node[]>([]);
   const [layoutedEdges, setLayoutedEdges] = useState<Edge[]>([]);
   const [isLayouting, setIsLayouting] = useState(true);
+  const [selectedDependency, setSelectedDependency] = useState<any>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { theme } = useTheme();
+
+  const handleEdgeClick = useCallback(
+    (_event: React.MouseEvent, edge: Edge) => {
+      const dependency = applicationData.dependencies.find(
+        (dep) => `${dep.consumer}-${dep.provider}` === edge.id,
+      );
+
+      if (dependency) {
+        setSelectedDependency(dependency);
+        setIsDrawerOpen(true);
+      }
+    },
+    [applicationData.dependencies],
+  );
+
+  const handleCloseDrawer = useCallback(() => {
+    setIsDrawerOpen(false);
+    setSelectedDependency(null);
+  }, []);
 
   const { initialNodes, initialEdges } = useMemo(() => {
     const edges: Edge[] = [];
@@ -109,12 +131,15 @@ export default function ApplicationGraph({
         style: {
           stroke: "#6b7280",
           strokeWidth: 2,
+          cursor: "pointer",
         },
         labelStyle: {
           fontSize: "10px",
           fill: "#4b5563",
         },
         type: "bezier",
+        className:
+          "hover:!stroke-primary hover:!stroke-4 transition-all duration-200",
       };
 
       edges.push(edge);
@@ -167,6 +192,7 @@ export default function ApplicationGraph({
         nodeTypes={nodeTypes}
         nodes={layoutedNodes}
         edges={layoutedEdges}
+        onEdgeClick={handleEdgeClick}
         fitView
         fitViewOptions={{ padding: 0.2 }}
         preventScrolling={false}
@@ -177,6 +203,13 @@ export default function ApplicationGraph({
         <Background />
         <ZoomSlider position="top-left" />
       </ReactFlow>
+
+      <DependencyDetailsDrawer
+        isOpen={isDrawerOpen}
+        onClose={handleCloseDrawer}
+        dependency={selectedDependency}
+        applications={applicationData.applicationsInvolved}
+      />
     </div>
   );
 }
