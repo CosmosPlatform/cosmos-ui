@@ -36,7 +36,7 @@ const items = [
   },
   {
     title: "Graphs",
-    url: "#",
+    url: "/graphs",
     icon: Network,
   },
 ];

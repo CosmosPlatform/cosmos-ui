@@ -52,6 +52,8 @@ import {
   ChevronDown,
   ChevronRight,
   GitBranch,
+  RefreshCw,
+  Network,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -62,6 +64,12 @@ import {
   type Team,
 } from "@/lib/api/applications/applications";
 import { getTeams } from "@/lib/api/teams/teams";
+import {
+  updateApplicationMonitoring,
+  getApplicationInteractions,
+  type GetApplicationInteractionsResponse,
+} from "@/lib/api/monitoring/monitoring";
+import ApplicationGraph from "@/components/graphs/applicationGraph";
 
 export default function ApplicationDetailPage() {
   const router = useRouter();
@@ -76,6 +84,12 @@ export default function ApplicationDetailPage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isGitSectionOpen, setIsGitSectionOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Monitoring state
+  const [isUpdatingMonitoring, setIsUpdatingMonitoring] = useState(false);
+  const [interactions, setInteractions] =
+    useState<GetApplicationInteractionsResponse | null>(null);
+  const [loadingInteractions, setLoadingInteractions] = useState(false);
 
   // Form state for editing
   const [editFormData, setEditFormData] = useState({
@@ -150,7 +164,42 @@ export default function ApplicationDetailPage() {
     };
 
     loadData();
+    // Load interactions when component mounts
+    loadInteractions();
   }, [applicationName, router]);
+
+  const handleUpdateMonitoring = async () => {
+    if (!applicationName) return;
+
+    setIsUpdatingMonitoring(true);
+
+    const result = await updateApplicationMonitoring(applicationName);
+    if (result.error) {
+      toast.error("Failed to update monitoring: " + result.error.error);
+    } else {
+      toast.success("Application monitoring updated successfully");
+      // Automatically fetch interactions after successful monitoring update
+      await loadInteractions();
+    }
+
+    setIsUpdatingMonitoring(false);
+  };
+
+  const loadInteractions = async () => {
+    if (!applicationName) return;
+
+    setLoadingInteractions(true);
+
+    const result = await getApplicationInteractions(applicationName);
+    if (result.error) {
+      toast.error("Failed to load interactions: " + result.error.error);
+      setInteractions(null);
+    } else {
+      setInteractions(result.data || null);
+    }
+
+    setLoadingInteractions(false);
+  };
 
   const validateEditForm = () => {
     const newErrors: Record<string, string> = {};
@@ -326,6 +375,18 @@ export default function ApplicationDetailPage() {
             <div className="flex gap-2">
               <Button
                 variant="outline"
+                onClick={handleUpdateMonitoring}
+                disabled={isUpdatingMonitoring}
+              >
+                {isUpdatingMonitoring ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+                <span className="ml-2">Update Monitoring</span>
+              </Button>
+              <Button
+                variant="outline"
                 onClick={() => setIsEditDialogOpen(true)}
               >
                 <Edit className="h-4 w-4 mr-2" />
@@ -432,6 +493,71 @@ export default function ApplicationDetailPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Application Interactions Card */}
+        <Card className="h-full w-full">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <div className="flex items-center gap-2">
+              <Network className="h-5 w-5" />
+              <CardTitle>Application Interactions</CardTitle>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadInteractions}
+              disabled={loadingInteractions}
+            >
+              {loadingInteractions ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              <span className="ml-2">Refresh</span>
+            </Button>
+          </CardHeader>
+          <CardContent className="h-full w-full">
+            {loadingInteractions ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="ml-2">Loading interactions...</span>
+              </div>
+            ) : interactions ? (
+              <div className="space-y-6 h-full w-full">
+                {/* Graph Visualization */}
+                {interactions.dependencies.length > 0 && (
+                  <div className="h-full w-full">
+                    <h4 className="font-semibold mb-4">Interaction Graph</h4>
+                    <ApplicationGraph
+                      applicationData={interactions}
+                      mainApplication={application.name}
+                    />
+                  </div>
+                )}
+
+                <div>
+                  {/* No interactions message */}
+                  {interactions.dependencies.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Network className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>No application interactions found.</p>
+                      <p className="text-sm">
+                        Try updating the monitoring to discover interactions.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Network className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>No interaction data available.</p>
+                <p className="text-sm">
+                  Click "Update Monitoring" to analyze application interactions.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Edit Dialog */}
@@ -509,7 +635,7 @@ export default function ApplicationDetailPage() {
               <CollapsibleTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="w-full justify-between p-0 h-auto"
+                  className="w-full justify-between p-0 h-auto min-h-12"
                 >
                   <div className="flex items-center gap-2">
                     <GitBranch className="h-4 w-4" />
