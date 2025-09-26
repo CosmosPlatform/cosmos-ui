@@ -396,7 +396,7 @@ export default function Page() {
                       onChange={(e) =>
                         handleInputChange("gitOwner", e.target.value)
                       }
-                      placeholder="e.g., RafaB15"
+                      placeholder="e.g., my-user"
                       className={
                         errors.gitOwner
                           ? "border-red-500 focus:border-red-500"
@@ -415,7 +415,7 @@ export default function Page() {
                       onChange={(e) =>
                         handleInputChange("gitRepositoryName", e.target.value)
                       }
-                      placeholder="e.g., Distribuidos-TP"
+                      placeholder="e.g., my-application"
                       className={
                         errors.gitRepositoryName
                           ? "border-red-500 focus:border-red-500"

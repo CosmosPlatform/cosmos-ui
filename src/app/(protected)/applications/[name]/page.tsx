@@ -686,7 +686,7 @@ export default function ApplicationDetailPage() {
                     onChange={(e) =>
                       handleEditInputChange("gitOwner", e.target.value)
                     }
-                    placeholder="e.g., RafaB15"
+                    placeholder="e.g., my-user"
                     className={
                       errors.gitOwner
                         ? "border-destructive focus:border-destructive"
@@ -709,7 +709,7 @@ export default function ApplicationDetailPage() {
                     onChange={(e) =>
                       handleEditInputChange("gitRepositoryName", e.target.value)
                     }
-                    placeholder="e.g., Distribuidos-TP"
+                    placeholder="e.g., my-application"
                     className={
                       errors.gitRepositoryName
                         ? "border-destructive focus:border-destructive"
