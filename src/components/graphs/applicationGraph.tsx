@@ -37,11 +37,25 @@ async function layoutGraph(
   const elkGraph = {
     id: "root",
     layoutOptions: elkOptions,
-    children: nodes.map((node) => ({
-      id: node.id,
-      width: node.width || 30,
-      height: node.height || 30,
-    })),
+    children: nodes.map((node) => {
+      // Calculate realistic dimensions based on application name length and whether it has a team
+      const appName = (node.data as any)?.applicationName || node.id;
+      const hasTeam = !!(node.data as any)?.applicationTeam;
+
+      // Base width calculation: min-w-32 (128px) to max-w-64 (256px)
+      // Estimate character width and add padding
+      const estimatedTextWidth = (appName as string).length * 8 + 32; // 8px per char + padding
+      const width = Math.max(128, Math.min(256, estimatedTextWidth));
+
+      // Height: nodes with team header are taller than those without
+      const height = hasTeam ? 80 : 50;
+
+      return {
+        id: node.id,
+        width: node.width || width,
+        height: node.height || height,
+      };
+    }),
     edges: edges.map((edge) => ({
       id: edge.id,
       sources: [edge.source],
