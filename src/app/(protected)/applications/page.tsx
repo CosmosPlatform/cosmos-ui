@@ -54,6 +54,10 @@ import {
 } from "@/lib/api/applications/applications";
 import { getTeams } from "@/lib/api/teams/teams";
 
+// Default paths for monitoring
+const DEFAULT_OPENAPI_PATH = "/docs/openclient.json";
+const DEFAULT_OPEN_CLIENT_PATH = "/docs/swagger.json";
+
 export default function Page() {
   const [applications, setApplications] = useState<Array<Application>>([]);
   const [teams, setTeams] = useState<Array<Team>>([]);
@@ -76,9 +80,9 @@ export default function Page() {
     gitOwner: "",
     gitRepositoryName: "",
     hasOpenAPI: false,
-    openAPIPath: "/docs/openapi.json",
+    openAPIPath: DEFAULT_OPENAPI_PATH,
     hasOpenClient: false,
-    openClientPath: "/docs/client.json",
+    openClientPath: DEFAULT_OPEN_CLIENT_PATH,
   });
 
   // Check if any git field has content
@@ -253,9 +257,9 @@ export default function Page() {
       gitOwner: "",
       gitRepositoryName: "",
       hasOpenAPI: false,
-      openAPIPath: "/docs/openapi.json",
+      openAPIPath: DEFAULT_OPENAPI_PATH,
       hasOpenClient: false,
-      openClientPath: "/docs/client.json",
+      openClientPath: DEFAULT_OPEN_CLIENT_PATH,
     });
     setErrors({});
     setCreateApplicationError("");
@@ -523,7 +527,7 @@ export default function Page() {
                               onChange={(e) =>
                                 handleInputChange("openAPIPath", e.target.value)
                               }
-                              placeholder="/docs/openapi.json"
+                              placeholder={DEFAULT_OPENAPI_PATH}
                               className={
                                 errors.openAPIPath
                                   ? "border-red-500 focus:border-red-500"
@@ -567,7 +571,7 @@ export default function Page() {
                                   e.target.value,
                                 )
                               }
-                              placeholder="/docs/client.json"
+                              placeholder={DEFAULT_OPEN_CLIENT_PATH}
                               className={
                                 errors.openClientPath
                                   ? "border-red-500 focus:border-red-500"
