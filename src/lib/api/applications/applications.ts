@@ -17,6 +17,7 @@ type CreateApplicationRequest = {
   description: string;
   team: string;
   gitInformation?: GitInformation;
+  monitoring?: MonitoringInformation;
 };
 
 type GitInformation = {
@@ -24,6 +25,13 @@ type GitInformation = {
   repositoryOwner: string;
   repositoryName: string;
   repositoryBranch: string;
+};
+
+type MonitoringInformation = {
+  hasOpenAPI: boolean;
+  openAPIPath?: string;
+  hasOpenClient: boolean;
+  openClientPath?: string;
 };
 
 type CreateApplicationResponse = {

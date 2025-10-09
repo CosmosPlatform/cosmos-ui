@@ -41,8 +41,10 @@ import {
   ChevronRight,
   GitBranch,
   AlertCircle,
+  Monitor,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import {
   getApplicationsWithFilter,
@@ -73,6 +75,10 @@ export default function Page() {
     gitBranch: "",
     gitOwner: "",
     gitRepositoryName: "",
+    hasOpenAPI: false,
+    openAPIPath: "/docs/openapi.json",
+    hasOpenClient: false,
+    openClientPath: "/docs/client.json",
   });
 
   // Check if any git field has content
@@ -150,6 +156,16 @@ export default function Page() {
       }
     }
 
+    // Validate monitoring fields
+    if (formData.hasOpenAPI && !formData.openAPIPath.trim()) {
+      newErrors.openAPIPath =
+        "OpenAPI path is required when OpenAPI is enabled";
+    }
+    if (formData.hasOpenClient && !formData.openClientPath.trim()) {
+      newErrors.openClientPath =
+        "Open Client path is required when Open Client is enabled";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -183,6 +199,18 @@ export default function Page() {
       };
     }
 
+    // Add monitoring information if any monitoring is enabled
+    if (formData.hasOpenAPI || formData.hasOpenClient) {
+      requestData.monitoring = {
+        hasOpenAPI: formData.hasOpenAPI,
+        openAPIPath: formData.hasOpenAPI ? formData.openAPIPath : undefined,
+        hasOpenClient: formData.hasOpenClient,
+        openClientPath: formData.hasOpenClient
+          ? formData.openClientPath
+          : undefined,
+      };
+    }
+
     const result = await createApplication(requestData);
 
     if (result.error) {
@@ -204,7 +232,10 @@ export default function Page() {
     setIsCreating(false);
   };
 
-  const handleInputChange = (field: keyof typeof formData, value: string) => {
+  const handleInputChange = (
+    field: keyof typeof formData,
+    value: string | boolean,
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error for this field when user starts typing
     if (errors[field]) {
@@ -221,6 +252,10 @@ export default function Page() {
       gitBranch: "",
       gitOwner: "",
       gitRepositoryName: "",
+      hasOpenAPI: false,
+      openAPIPath: "/docs/openapi.json",
+      hasOpenClient: false,
+      openClientPath: "/docs/client.json",
     });
     setErrors({});
     setCreateApplicationError("");
@@ -350,7 +385,7 @@ export default function Page() {
                     <div className="flex items-center gap-2">
                       <GitBranch className="h-4 w-4" />
                       <Label className="cursor-pointer">
-                        Git Information (Optional)
+                        Git & Monitoring Information (Optional)
                       </Label>
                     </div>
                     {isGitSectionOpen ? (
@@ -454,6 +489,101 @@ export default function Page() {
                       you provide any git information.
                     </p>
                   )}
+
+                  {/* Monitoring Information Section */}
+                  <div className="space-y-4 border-t pt-4 mt-4">
+                    <div className="flex items-center gap-2">
+                      <Monitor className="h-4 w-4" />
+                      <Label className="text-sm font-medium">
+                        Monitoring Information (Optional)
+                      </Label>
+                    </div>
+
+                    <div className="space-y-4">
+                      {/* OpenAPI Section */}
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="hasOpenAPI"
+                            checked={formData.hasOpenAPI}
+                            onCheckedChange={(checked) =>
+                              handleInputChange("hasOpenAPI", !!checked)
+                            }
+                          />
+                          <Label htmlFor="hasOpenAPI" className="text-sm">
+                            Has OpenAPI documentation
+                          </Label>
+                        </div>
+                        {formData.hasOpenAPI && (
+                          <div className="ml-6 grid gap-2">
+                            <Label htmlFor="openAPIPath">OpenAPI Path</Label>
+                            <Input
+                              id="openAPIPath"
+                              value={formData.openAPIPath}
+                              onChange={(e) =>
+                                handleInputChange("openAPIPath", e.target.value)
+                              }
+                              placeholder="/docs/openapi.json"
+                              className={
+                                errors.openAPIPath
+                                  ? "border-red-500 focus:border-red-500"
+                                  : ""
+                              }
+                            />
+                            {errors.openAPIPath && (
+                              <p className="text-sm text-red-500">
+                                {errors.openAPIPath}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Open Client Section */}
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="hasOpenClient"
+                            checked={formData.hasOpenClient}
+                            onCheckedChange={(checked) =>
+                              handleInputChange("hasOpenClient", !!checked)
+                            }
+                          />
+                          <Label htmlFor="hasOpenClient" className="text-sm">
+                            Has Open Client documentation
+                          </Label>
+                        </div>
+                        {formData.hasOpenClient && (
+                          <div className="ml-6 grid gap-2">
+                            <Label htmlFor="openClientPath">
+                              Open Client Path
+                            </Label>
+                            <Input
+                              id="openClientPath"
+                              value={formData.openClientPath}
+                              onChange={(e) =>
+                                handleInputChange(
+                                  "openClientPath",
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="/docs/client.json"
+                              className={
+                                errors.openClientPath
+                                  ? "border-red-500 focus:border-red-500"
+                                  : ""
+                              }
+                            />
+                            {errors.openClientPath && (
+                              <p className="text-sm text-red-500">
+                                {errors.openClientPath}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </CollapsibleContent>
               </Collapsible>
             </div>
