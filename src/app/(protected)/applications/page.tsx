@@ -55,8 +55,8 @@ import {
 import { getTeams } from "@/lib/api/teams/teams";
 
 // Default paths for monitoring
-const DEFAULT_OPENAPI_PATH = "/docs/openclient.json";
-const DEFAULT_OPEN_CLIENT_PATH = "/docs/swagger.json";
+const DEFAULT_OPENAPI_PATH = "/docs/swagger.json";
+const DEFAULT_OPEN_CLIENT_PATH = "/docs/openclient.json";
 
 export default function Page() {
   const [applications, setApplications] = useState<Array<Application>>([]);
