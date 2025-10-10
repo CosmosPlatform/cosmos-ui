@@ -162,10 +162,9 @@ export default function ApplicationDetailPage() {
           gitBranch: app.gitInformation?.repositoryBranch || "",
           gitOwner: app.gitInformation?.repositoryOwner || "",
           gitRepositoryName: app.gitInformation?.repositoryName || "",
-          hasOpenAPI: (app.monitoringInformation as any)?.hasOpenApi || false,
+          hasOpenAPI: app.monitoringInformation?.hasOpenAPI || false,
           openAPIPath:
-            (app.monitoringInformation as any)?.openApiPath ||
-            DEFAULT_OPENAPI_PATH,
+            app.monitoringInformation?.openAPIPath || DEFAULT_OPENAPI_PATH,
           hasOpenClient: app.monitoringInformation?.hasOpenClient || false,
           openClientPath:
             app.monitoringInformation?.openClientPath ||
@@ -178,7 +177,7 @@ export default function ApplicationDetailPage() {
         if (
           app.gitInformation ||
           (app.monitoringInformation &&
-            ((app.monitoringInformation as any).hasOpenApi ||
+            (app.monitoringInformation.hasOpenAPI ||
               app.monitoringInformation.hasOpenClient))
         ) {
           setIsGitSectionOpen(true);
@@ -368,10 +367,9 @@ export default function ApplicationDetailPage() {
           gitBranch: application.gitInformation?.repositoryBranch || "",
           gitOwner: application.gitInformation?.repositoryOwner || "",
           gitRepositoryName: application.gitInformation?.repositoryName || "",
-          hasOpenAPI:
-            (application.monitoringInformation as any)?.hasOpenApi || false,
+          hasOpenAPI: application.monitoringInformation?.hasOpenAPI || false,
           openAPIPath:
-            (application.monitoringInformation as any)?.openApiPath ||
+            application.monitoringInformation?.openAPIPath ||
             DEFAULT_OPENAPI_PATH,
           hasOpenClient:
             application.monitoringInformation?.hasOpenClient || false,
@@ -383,7 +381,7 @@ export default function ApplicationDetailPage() {
           !!application.gitInformation ||
             !!(
               application.monitoringInformation &&
-              ((application.monitoringInformation as any).hasOpenApi ||
+              (application.monitoringInformation.hasOpenAPI ||
                 application.monitoringInformation.hasOpenClient)
             ),
         );
@@ -558,7 +556,7 @@ export default function ApplicationDetailPage() {
               )}
 
               {application.monitoringInformation &&
-                ((application.monitoringInformation as any).hasOpenApi ||
+                (application.monitoringInformation.hasOpenAPI ||
                   application.monitoringInformation.hasOpenClient) && (
                   <div>
                     <h3 className="font-semibold mb-2">
@@ -566,8 +564,7 @@ export default function ApplicationDetailPage() {
                     </h3>
                     <div className="bg-muted p-4 rounded-lg">
                       <div className="space-y-3">
-                        {(application.monitoringInformation as any)
-                          .hasOpenApi && (
+                        {application.monitoringInformation.hasOpenAPI && (
                           <div>
                             <span className="font-medium">
                               OpenAPI Documentation:
@@ -575,14 +572,10 @@ export default function ApplicationDetailPage() {
                             <span className="ml-2 text-green-600">
                               ✓ Enabled
                             </span>
-                            {(application.monitoringInformation as any)
-                              .openApiPath && (
+                            {application.monitoringInformation.openAPIPath && (
                               <div className="text-sm text-muted-foreground mt-1">
                                 Path:{" "}
-                                {
-                                  (application.monitoringInformation as any)
-                                    .openApiPath
-                                }
+                                {application.monitoringInformation.openAPIPath}
                               </div>
                             )}
                           </div>
