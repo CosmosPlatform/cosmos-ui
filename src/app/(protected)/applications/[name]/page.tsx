@@ -74,8 +74,8 @@ import {
 import ApplicationGraph from "@/components/graphs/applicationGraph";
 
 // Default paths for monitoring
-const DEFAULT_OPENAPI_PATH = "/docs/swagger.json";
-const DEFAULT_OPEN_CLIENT_PATH = "/docs/openclient.json";
+const DEFAULT_OPENAPI_PATH = "docs/swagger.json";
+const DEFAULT_OPEN_CLIENT_PATH = "docs/openclient.json";
 
 export default function ApplicationDetailPage() {
   const router = useRouter();
