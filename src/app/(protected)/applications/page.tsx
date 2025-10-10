@@ -205,7 +205,7 @@ export default function Page() {
 
     // Add monitoring information if any monitoring is enabled
     if (formData.hasOpenAPI || formData.hasOpenClient) {
-      requestData.monitoring = {
+      requestData.monitoringInformation = {
         hasOpenAPI: formData.hasOpenAPI,
         openAPIPath: formData.hasOpenAPI ? formData.openAPIPath : undefined,
         hasOpenClient: formData.hasOpenClient,

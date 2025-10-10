@@ -10,6 +10,7 @@ export type Application = {
   description: string;
   team?: Team;
   gitInformation?: GitInformation;
+  monitoringInformation?: MonitoringInformation;
 };
 
 type CreateApplicationRequest = {
@@ -17,7 +18,7 @@ type CreateApplicationRequest = {
   description: string;
   team: string;
   gitInformation?: GitInformation;
-  monitoring?: MonitoringInformation;
+  monitoringInformation?: MonitoringInformation;
 };
 
 type GitInformation = {
@@ -110,6 +111,7 @@ export type UpdateApplicationRequest = {
   description: string;
   team: string;
   gitInformation?: GitInformation;
+  monitoringInformation?: MonitoringInformation;
 };
 
 export type UpdateApplicationResponse = {
