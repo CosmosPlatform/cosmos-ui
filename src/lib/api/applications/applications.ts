@@ -10,6 +10,7 @@ export type Application = {
   description: string;
   team?: Team;
   gitInformation?: GitInformation;
+  monitoringInformation?: MonitoringInformation;
 };
 
 type CreateApplicationRequest = {
@@ -17,6 +18,7 @@ type CreateApplicationRequest = {
   description: string;
   team: string;
   gitInformation?: GitInformation;
+  monitoringInformation?: MonitoringInformation;
 };
 
 type GitInformation = {
@@ -24,6 +26,13 @@ type GitInformation = {
   repositoryOwner: string;
   repositoryName: string;
   repositoryBranch: string;
+};
+
+type MonitoringInformation = {
+  hasOpenAPI: boolean;
+  openAPIPath?: string;
+  hasOpenClient: boolean;
+  openClientPath?: string;
 };
 
 type CreateApplicationResponse = {
@@ -102,6 +111,7 @@ export type UpdateApplicationRequest = {
   description: string;
   team: string;
   gitInformation?: GitInformation;
+  monitoringInformation?: MonitoringInformation;
 };
 
 export type UpdateApplicationResponse = {

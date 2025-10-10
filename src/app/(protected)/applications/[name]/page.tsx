@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
@@ -54,6 +55,7 @@ import {
   GitBranch,
   RefreshCw,
   Network,
+  Monitor,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -70,6 +72,10 @@ import {
   type GetApplicationInteractionsResponse,
 } from "@/lib/api/monitoring/monitoring";
 import ApplicationGraph from "@/components/graphs/applicationGraph";
+
+// Default paths for monitoring
+const DEFAULT_OPENAPI_PATH = "docs/swagger.json";
+const DEFAULT_OPEN_CLIENT_PATH = "docs/openclient.json";
 
 export default function ApplicationDetailPage() {
   const router = useRouter();
@@ -100,6 +106,10 @@ export default function ApplicationDetailPage() {
     gitBranch: "",
     gitOwner: "",
     gitRepositoryName: "",
+    hasOpenAPI: false,
+    openAPIPath: DEFAULT_OPENAPI_PATH,
+    hasOpenClient: false,
+    openClientPath: DEFAULT_OPEN_CLIENT_PATH,
   });
 
   // Check if any git field has content
@@ -144,7 +154,7 @@ export default function ApplicationDetailPage() {
 
       // Populate edit form with current application data
       if (app) {
-        setEditFormData({
+        const formData = {
           name: app.name,
           description: app.description,
           team: app.team?.name || "",
@@ -152,10 +162,24 @@ export default function ApplicationDetailPage() {
           gitBranch: app.gitInformation?.repositoryBranch || "",
           gitOwner: app.gitInformation?.repositoryOwner || "",
           gitRepositoryName: app.gitInformation?.repositoryName || "",
-        });
+          hasOpenAPI: app.monitoringInformation?.hasOpenAPI || false,
+          openAPIPath:
+            app.monitoringInformation?.openAPIPath || DEFAULT_OPENAPI_PATH,
+          hasOpenClient: app.monitoringInformation?.hasOpenClient || false,
+          openClientPath:
+            app.monitoringInformation?.openClientPath ||
+            DEFAULT_OPEN_CLIENT_PATH,
+        };
 
-        // Open git section if git information exists
-        if (app.gitInformation) {
+        setEditFormData(formData);
+
+        // Open git section if git or monitoring information exists
+        if (
+          app.gitInformation ||
+          (app.monitoringInformation &&
+            (app.monitoringInformation.hasOpenAPI ||
+              app.monitoringInformation.hasOpenClient))
+        ) {
           setIsGitSectionOpen(true);
         }
       }
@@ -232,6 +256,16 @@ export default function ApplicationDetailPage() {
       }
     }
 
+    // Validate monitoring fields
+    if (editFormData.hasOpenAPI && !editFormData.openAPIPath.trim()) {
+      newErrors.openAPIPath =
+        "OpenAPI path is required when OpenAPI is enabled";
+    }
+    if (editFormData.hasOpenClient && !editFormData.openClientPath.trim()) {
+      newErrors.openClientPath =
+        "Open Client path is required when Open Client is enabled";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -256,6 +290,20 @@ export default function ApplicationDetailPage() {
         repositoryOwner: editFormData.gitOwner,
         repositoryName: editFormData.gitRepositoryName,
         repositoryBranch: editFormData.gitBranch,
+      };
+    }
+
+    // Add monitoring information if any monitoring is enabled
+    if (editFormData.hasOpenAPI || editFormData.hasOpenClient) {
+      requestData.monitoringInformation = {
+        hasOpenAPI: editFormData.hasOpenAPI,
+        openAPIPath: editFormData.hasOpenAPI
+          ? editFormData.openAPIPath
+          : undefined,
+        hasOpenClient: editFormData.hasOpenClient,
+        openClientPath: editFormData.hasOpenClient
+          ? editFormData.openClientPath
+          : undefined,
       };
     }
 
@@ -296,7 +344,7 @@ export default function ApplicationDetailPage() {
 
   const handleEditInputChange = (
     field: keyof typeof editFormData,
-    value: string,
+    value: string | boolean,
   ) => {
     setEditFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error for this field when user starts typing
@@ -319,8 +367,24 @@ export default function ApplicationDetailPage() {
           gitBranch: application.gitInformation?.repositoryBranch || "",
           gitOwner: application.gitInformation?.repositoryOwner || "",
           gitRepositoryName: application.gitInformation?.repositoryName || "",
+          hasOpenAPI: application.monitoringInformation?.hasOpenAPI || false,
+          openAPIPath:
+            application.monitoringInformation?.openAPIPath ||
+            DEFAULT_OPENAPI_PATH,
+          hasOpenClient:
+            application.monitoringInformation?.hasOpenClient || false,
+          openClientPath:
+            application.monitoringInformation?.openClientPath ||
+            DEFAULT_OPEN_CLIENT_PATH,
         });
-        setIsGitSectionOpen(!!application.gitInformation);
+        setIsGitSectionOpen(
+          !!application.gitInformation ||
+            !!(
+              application.monitoringInformation &&
+              (application.monitoringInformation.hasOpenAPI ||
+                application.monitoringInformation.hasOpenClient)
+            ),
+        );
       }
     }
   };
@@ -490,6 +554,56 @@ export default function ApplicationDetailPage() {
                   </div>
                 </div>
               )}
+
+              {application.monitoringInformation &&
+                (application.monitoringInformation.hasOpenAPI ||
+                  application.monitoringInformation.hasOpenClient) && (
+                  <div>
+                    <h3 className="font-semibold mb-2">
+                      Monitoring Information
+                    </h3>
+                    <div className="bg-muted p-4 rounded-lg">
+                      <div className="space-y-3">
+                        {application.monitoringInformation.hasOpenAPI && (
+                          <div>
+                            <span className="font-medium">
+                              OpenAPI Documentation:
+                            </span>
+                            <span className="ml-2 text-green-600">
+                              ✓ Enabled
+                            </span>
+                            {application.monitoringInformation.openAPIPath && (
+                              <div className="text-sm text-muted-foreground mt-1">
+                                Path:{" "}
+                                {application.monitoringInformation.openAPIPath}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {application.monitoringInformation.hasOpenClient && (
+                          <div>
+                            <span className="font-medium">
+                              Open Client Documentation:
+                            </span>
+                            <span className="ml-2 text-green-600">
+                              ✓ Enabled
+                            </span>
+                            {application.monitoringInformation
+                              .openClientPath && (
+                              <div className="text-sm text-muted-foreground mt-1">
+                                Path:{" "}
+                                {
+                                  application.monitoringInformation
+                                    .openClientPath
+                                }
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
             </div>
           </CardContent>
         </Card>
@@ -627,7 +741,7 @@ export default function ApplicationDetailPage() {
               </Select>
             </div>
 
-            {/* Git Information Collapsible Section */}
+            {/* Git & Monitoring Information Collapsible Section */}
             <Collapsible
               open={isGitSectionOpen}
               onOpenChange={setIsGitSectionOpen}
@@ -640,7 +754,7 @@ export default function ApplicationDetailPage() {
                   <div className="flex items-center gap-2">
                     <GitBranch className="h-4 w-4" />
                     <Label className="cursor-pointer">
-                      Git Information (Optional)
+                      Git & Monitoring Information (Optional)
                     </Label>
                   </div>
                   {isGitSectionOpen ? (
@@ -750,6 +864,104 @@ export default function ApplicationDetailPage() {
                     provide any git information.
                   </p>
                 )}
+
+                {/* Monitoring Information Section */}
+                <div className="space-y-4 border-t pt-4 mt-4">
+                  <div className="flex items-center gap-2">
+                    <Monitor className="h-4 w-4" />
+                    <Label className="text-sm font-medium">
+                      Monitoring Information (Optional)
+                    </Label>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* OpenAPI Section */}
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="edit-hasOpenAPI"
+                          checked={editFormData.hasOpenAPI}
+                          onCheckedChange={(checked) =>
+                            handleEditInputChange("hasOpenAPI", !!checked)
+                          }
+                        />
+                        <Label htmlFor="edit-hasOpenAPI" className="text-sm">
+                          Has OpenAPI documentation
+                        </Label>
+                      </div>
+                      {editFormData.hasOpenAPI && (
+                        <div className="ml-6 grid gap-2">
+                          <Label htmlFor="edit-openAPIPath">OpenAPI Path</Label>
+                          <Input
+                            id="edit-openAPIPath"
+                            value={editFormData.openAPIPath}
+                            onChange={(e) =>
+                              handleEditInputChange(
+                                "openAPIPath",
+                                e.target.value,
+                              )
+                            }
+                            placeholder={DEFAULT_OPENAPI_PATH}
+                            className={
+                              errors.openAPIPath
+                                ? "border-destructive focus:border-destructive"
+                                : ""
+                            }
+                          />
+                          {errors.openAPIPath && (
+                            <p className="text-sm text-destructive">
+                              {errors.openAPIPath}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Open Client Section */}
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="edit-hasOpenClient"
+                          checked={editFormData.hasOpenClient}
+                          onCheckedChange={(checked) =>
+                            handleEditInputChange("hasOpenClient", !!checked)
+                          }
+                        />
+                        <Label htmlFor="edit-hasOpenClient" className="text-sm">
+                          Has Open Client documentation
+                        </Label>
+                      </div>
+                      {editFormData.hasOpenClient && (
+                        <div className="ml-6 grid gap-2">
+                          <Label htmlFor="edit-openClientPath">
+                            Open Client Path
+                          </Label>
+                          <Input
+                            id="edit-openClientPath"
+                            value={editFormData.openClientPath}
+                            onChange={(e) =>
+                              handleEditInputChange(
+                                "openClientPath",
+                                e.target.value,
+                              )
+                            }
+                            placeholder={DEFAULT_OPEN_CLIENT_PATH}
+                            className={
+                              errors.openClientPath
+                                ? "border-destructive focus:border-destructive"
+                                : ""
+                            }
+                          />
+                          {errors.openClientPath && (
+                            <p className="text-sm text-destructive">
+                              {errors.openClientPath}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </CollapsibleContent>
             </Collapsible>
           </div>

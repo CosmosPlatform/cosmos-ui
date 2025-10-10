@@ -151,7 +151,6 @@ export default function ApplicationGraph({
           fontSize: "10px",
           fill: "#4b5563",
         },
-        type: "bezier",
         className:
           "hover:!stroke-primary hover:!stroke-4 transition-all duration-200",
       };
