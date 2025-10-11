@@ -1,0 +1,70 @@
+.dark .swagger-ui {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.dark .swagger-ui .title {
+    color: var(--foreground);
+    font-weight: bold;
+}
+
+.dark .swagger-ui .info,
+.dark .swagger-ui .opblock,
+.dark .swagger-ui .response,
+.dark .swagger-ui .parameters {
+  background-color: var(--card);
+  color: var(--foreground);
+}
+
+.dark .swagger-ui .opblock-summary-method {
+  color: var(--primary-foreground);
+  background-color: var(--primary);
+}
+
+.dark .swagger-ui .opblock-summary-path,
+.dark .swagger-ui .opblock-summary-description {
+  color: var(--foreground) !important;
+}
+
+.dark .swagger-ui .opblock .opblock-description-wrapper p {
+  color: var(--foreground) !important;
+}
+
+.dark .swagger-ui table,
+.dark .swagger-ui td,
+.dark .swagger-ui th {
+  color: var(--foreground);
+  background-color: var(--card);
+  border-color: var(--border);
+}
+
+/* Buttons and links */
+.dark .swagger-ui .btn {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.dark .swagger-ui .btn:hover {
+  background-color: oklch(from var(--primary) l c h / 0.8);
+}
+
+.dark .swagger-ui a {
+  color: var(--foreground);
+}
+
+.dark .swagger-ui .parameter__name {
+    color: var(--accent-foreground);
+}
+
+.dark .swagger-ui .parameter__type {
+    color: var(--accent-foreground);
+}
+
+.dark .swagger-ui .parameter__in {
+    color: var(--accent-foreground);
+}
+
+.swagger-ui .parameter__name.required::after,
+.swagger-ui .parameter__name.required span {
+    color: #FF9696;
+}

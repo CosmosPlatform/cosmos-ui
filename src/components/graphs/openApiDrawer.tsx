@@ -10,6 +10,7 @@ import {
 import { useEffect, useState } from "react";
 import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
+import "./swagger-custom.css";
 import { getApplicationOpenAPISpecification } from "@/lib/api/monitoring/monitoring";
 import { Loader2, FileCode } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";

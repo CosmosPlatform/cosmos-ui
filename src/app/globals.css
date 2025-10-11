@@ -173,3 +173,19 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Swagger UI customization for drawer */
+.swagger-ui-wrapper {
+  .swagger-ui {
+    font-family: inherit;
+  }
+  
+  .swagger-ui .info {
+    margin: 20px 0;
+  }
+  
+  .swagger-ui .scheme-container {
+    box-shadow: none;
+    padding: 0;
+  }
+}
