@@ -80,3 +80,19 @@ export async function getApplicationsInteractions(
     GetApplicationsInteractionsResponse
   >("GET", "/monitoring/interactions", null, queryParams);
 }
+
+// -----------------------------------------------------------------
+
+type GetApplicationOpenAPISpecificationResponse = {
+  applicationName: string;
+  openAPISpec: string;
+};
+
+export async function getApplicationOpenAPISpecification(
+  application: string,
+): Promise<ApiResult<GetApplicationOpenAPISpecificationResponse>> {
+  return sendRequestWithAuth<never, GetApplicationOpenAPISpecificationResponse>(
+    "GET",
+    `/monitoring/openapi/${application}`,
+  );
+}
