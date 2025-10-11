@@ -8,9 +8,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { useEffect, useState } from "react";
-import SwaggerUI from "swagger-ui-react";
-import "swagger-ui-react/swagger-ui.css";
-import "./swagger-custom.css";
+import Swagger from "@/components/swagger/swagger";
 import { getApplicationOpenAPISpecification } from "@/lib/api/monitoring/monitoring";
 import { Loader2, FileCode } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -98,7 +96,7 @@ export default function OpenApiDrawer({
 
           {!loading && !error && openApiSpec && (
             <div className="swagger-ui-wrapper">
-              <SwaggerUI spec={openApiSpec} />
+              <Swagger spec={openApiSpec} />
             </div>
           )}
         </div>
