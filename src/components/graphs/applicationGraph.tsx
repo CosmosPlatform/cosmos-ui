@@ -4,6 +4,7 @@ import { useMemo, useEffect, useState, useCallback } from "react";
 import "@xyflow/react/dist/style.css";
 import ApplicationNode from "./applicationNode";
 import DependencyDetailsDrawer from "./dependencyDetailsDrawer";
+import ApplicationDrawer from "./applicationDrawer";
 import { Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -88,6 +89,10 @@ export default function ApplicationGraph({
   const [isLayouting, setIsLayouting] = useState(true);
   const [selectedDependency, setSelectedDependency] = useState<any>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState<string | null>(
+    null,
+  );
+  const [isOpenApiDrawerOpen, setIsOpenApiDrawerOpen] = useState(false);
   const { theme } = useTheme();
 
   const handleEdgeClick = useCallback(
@@ -107,6 +112,19 @@ export default function ApplicationGraph({
   const handleCloseDrawer = useCallback(() => {
     setIsDrawerOpen(false);
     setSelectedDependency(null);
+  }, []);
+
+  const handleNodeClick = useCallback(
+    (_event: React.MouseEvent, node: Node) => {
+      setSelectedApplication(node.id);
+      setIsOpenApiDrawerOpen(true);
+    },
+    [],
+  );
+
+  const handleCloseOpenApiDrawer = useCallback(() => {
+    setIsOpenApiDrawerOpen(false);
+    setSelectedApplication(null);
   }, []);
 
   const { initialNodes, initialEdges } = useMemo(() => {
@@ -206,6 +224,7 @@ export default function ApplicationGraph({
         nodes={layoutedNodes}
         edges={layoutedEdges}
         onEdgeClick={handleEdgeClick}
+        onNodeClick={handleNodeClick}
         fitView
         fitViewOptions={{ padding: 0.2 }}
         preventScrolling={false}
@@ -222,6 +241,12 @@ export default function ApplicationGraph({
         onClose={handleCloseDrawer}
         dependency={selectedDependency}
         applications={applicationData.applicationsInvolved}
+      />
+
+      <ApplicationDrawer
+        isOpen={isOpenApiDrawerOpen}
+        onClose={handleCloseOpenApiDrawer}
+        applicationName={selectedApplication}
       />
     </div>
   );

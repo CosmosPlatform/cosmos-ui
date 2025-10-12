@@ -1,4 +1,5 @@
 import { ApiResult, sendRequestWithAuth } from "@/lib/api/cosmosServerClient";
+import { Application } from "../applications/applications";
 
 export async function updateApplicationMonitoring(
   application: string,
@@ -79,4 +80,46 @@ export async function getApplicationsInteractions(
     GetApplicationsInteractionsRequest,
     GetApplicationsInteractionsResponse
   >("GET", "/monitoring/interactions", null, queryParams);
+}
+
+// -----------------------------------------------------------------
+
+type GetApplicationOpenAPISpecificationResponse = {
+  applicationName: string;
+  openAPISpec: string;
+};
+
+export async function getApplicationOpenAPISpecification(
+  application: string,
+): Promise<ApiResult<GetApplicationOpenAPISpecificationResponse>> {
+  return sendRequestWithAuth<never, GetApplicationOpenAPISpecificationResponse>(
+    "GET",
+    `/monitoring/openapi/${application}`,
+  );
+}
+
+// -----------------------------------------------------------------
+
+export type GetCompleteApplicationMonitoringResponse = {
+  application: Application;
+  openAPISpec?: string;
+  dependencies: ApplicationDependency[];
+  consumedEndpoints: ConsumedEndpoints;
+};
+
+export type ConsumedEndpoints = Record<string, ConsumedEndpointMethods>;
+
+export type ConsumedEndpointMethods = Record<string, ConsumedEndpointDetails>;
+
+export type ConsumedEndpointDetails = {
+  consumers: string[];
+};
+
+export async function getCompleteApplicationMonitoring(
+  application: string,
+): Promise<ApiResult<GetCompleteApplicationMonitoringResponse>> {
+  return sendRequestWithAuth<never, GetCompleteApplicationMonitoringResponse>(
+    "GET",
+    `/monitoring/complete/${application}`,
+  );
 }
