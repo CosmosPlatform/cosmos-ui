@@ -56,6 +56,8 @@ import {
   RefreshCw,
   Network,
   Monitor,
+  FileCode,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -70,8 +72,14 @@ import {
   updateApplicationMonitoring,
   getApplicationInteractions,
   type GetApplicationInteractionsResponse,
+  getCompleteApplicationMonitoring,
+  type GetCompleteApplicationMonitoringResponse,
 } from "@/lib/api/monitoring/monitoring";
 import ApplicationGraph from "@/components/graphs/applicationGraph";
+import Swagger from "@/components/swagger/swagger";
+import ApplicationConsumers from "@/components/graphs/applicationConsumers";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Default paths for monitoring
 const DEFAULT_OPENAPI_PATH = "docs/swagger.json";
@@ -96,6 +104,10 @@ export default function ApplicationDetailPage() {
   const [interactions, setInteractions] =
     useState<GetApplicationInteractionsResponse | null>(null);
   const [loadingInteractions, setLoadingInteractions] = useState(false);
+  const [completeMonitoring, setCompleteMonitoring] =
+    useState<GetCompleteApplicationMonitoringResponse | null>(null);
+  const [loadingCompleteMonitoring, setLoadingCompleteMonitoring] =
+    useState(false);
 
   // Form state for editing
   const [editFormData, setEditFormData] = useState({
@@ -190,7 +202,24 @@ export default function ApplicationDetailPage() {
     loadData();
     // Load interactions when component mounts
     loadInteractions();
+    loadCompleteMonitoring();
   }, [applicationName, router]);
+
+  const loadCompleteMonitoring = async () => {
+    if (!applicationName) return;
+
+    setLoadingCompleteMonitoring(true);
+
+    const result = await getCompleteApplicationMonitoring(applicationName);
+    if (result.error) {
+      toast.error("Failed to load monitoring data: " + result.error.error);
+      setCompleteMonitoring(null);
+    } else {
+      setCompleteMonitoring(result.data || null);
+    }
+
+    setLoadingCompleteMonitoring(false);
+  };
 
   const handleUpdateMonitoring = async () => {
     if (!applicationName) return;
@@ -202,8 +231,9 @@ export default function ApplicationDetailPage() {
       toast.error("Failed to update monitoring: " + result.error.error);
     } else {
       toast.success("Application monitoring updated successfully");
-      // Automatically fetch interactions after successful monitoring update
+      // Automatically fetch interactions and complete monitoring after successful update
       await loadInteractions();
+      await loadCompleteMonitoring();
     }
 
     setIsUpdatingMonitoring(false);
@@ -667,6 +697,79 @@ export default function ApplicationDetailPage() {
                 <p>No interaction data available.</p>
                 <p className="text-sm">
                   Click "Update Monitoring" to analyze application interactions.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* API Documentation & Consumers Card */}
+        <Card className="h-full w-full">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <div className="flex items-center gap-2">
+              <Monitor className="h-5 w-5" />
+              <CardTitle>API Documentation & Consumers</CardTitle>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadCompleteMonitoring}
+              disabled={loadingCompleteMonitoring}
+            >
+              {loadingCompleteMonitoring ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              <span className="ml-2">Refresh</span>
+            </Button>
+          </CardHeader>
+          <CardContent className="h-full w-full">
+            {loadingCompleteMonitoring ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="ml-2">Loading monitoring data...</span>
+              </div>
+            ) : completeMonitoring ? (
+              <Tabs defaultValue="api" className="w-full">
+                <TabsList className="w-full">
+                  <TabsTrigger value="api" className="flex-1">
+                    <FileCode className="h-4 w-4" />
+                    API Documentation
+                  </TabsTrigger>
+                  <TabsTrigger value="consumers" className="flex-1">
+                    <Users className="h-4 w-4" />
+                    Consumers
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="api" className="mt-4">
+                  {completeMonitoring.openAPISpec ? (
+                    <Swagger
+                      spec={JSON.parse(completeMonitoring.openAPISpec)}
+                    />
+                  ) : (
+                    <Alert>
+                      <AlertDescription>
+                        No OpenAPI specification available for this application.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="consumers" className="mt-4">
+                  <ApplicationConsumers
+                    consumedEndpoints={completeMonitoring.consumedEndpoints}
+                  />
+                </TabsContent>
+              </Tabs>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Monitor className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>No monitoring data available.</p>
+                <p className="text-sm">
+                  Click "Update Monitoring" to analyze application API and
+                  consumers.
                 </p>
               </div>
             )}
