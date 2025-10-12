@@ -10,14 +10,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
 import Swagger from "@/components/swagger/swagger";
+import ApplicationConsumers from "@/components/graphs/applicationConsumers";
 import {
   getCompleteApplicationMonitoring,
   GetCompleteApplicationMonitoringResponse,
 } from "@/lib/api/monitoring/monitoring";
 import { Loader2, FileCode, Users, Rocket } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ApplicationDrawerProps {
   isOpen: boolean;
@@ -127,48 +126,10 @@ export default function ApplicationDrawer({
                 )}
               </TabsContent>
 
-              <TabsContent value="consumers" className="mt-4 space-y-4">
-                {Object.keys(monitoringData.consumedEndpoints).length > 0 ? (
-                  Object.entries(monitoringData.consumedEndpoints).flatMap(
-                    ([endpoint, methods]) =>
-                      Object.entries(methods).map(([method, details]) => (
-                        <Card key={`${endpoint}-${method}`}>
-                          <CardHeader>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="font-mono">
-                                {method.toUpperCase()}
-                              </Badge>
-                              <CardTitle className="text-base font-mono">
-                                {endpoint}
-                              </CardTitle>
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="text-sm text-muted-foreground mb-2">
-                              Consumed by:
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {details.consumers.map((consumer) => (
-                                <Badge
-                                  key={consumer}
-                                  variant="secondary"
-                                  className="font-normal"
-                                >
-                                  {consumer}
-                                </Badge>
-                              ))}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )),
-                  )
-                ) : (
-                  <Alert>
-                    <AlertDescription>
-                      No endpoint consumers found for this application.
-                    </AlertDescription>
-                  </Alert>
-                )}
+              <TabsContent value="consumers" className="mt-4">
+                <ApplicationConsumers
+                  consumedEndpoints={monitoringData.consumedEndpoints}
+                />
               </TabsContent>
             </Tabs>
           )}
