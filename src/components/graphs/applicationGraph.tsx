@@ -4,7 +4,7 @@ import { useMemo, useEffect, useState, useCallback } from "react";
 import "@xyflow/react/dist/style.css";
 import ApplicationNode from "./applicationNode";
 import DependencyDetailsDrawer from "./dependencyDetailsDrawer";
-import OpenApiDrawer from "./openApiDrawer";
+import ApplicationDrawer from "./applicationDrawer";
 import { Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -243,7 +243,7 @@ export default function ApplicationGraph({
         applications={applicationData.applicationsInvolved}
       />
 
-      <OpenApiDrawer
+      <ApplicationDrawer
         isOpen={isOpenApiDrawerOpen}
         onClose={handleCloseOpenApiDrawer}
         applicationName={selectedApplication}

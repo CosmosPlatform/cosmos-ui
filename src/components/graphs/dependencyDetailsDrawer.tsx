@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { ArrowRight, Globe, Zap } from "lucide-react";
 import {
   ApplicationDependency,
@@ -115,60 +114,50 @@ export default function DependencyDetailsDrawer({
           )}
 
           {/* Endpoints */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Globe className="h-4 w-4" />
-                Endpoints ({totalEndpoints})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {endpointEntries.length === 0 ? (
-                <div className="text-sm text-muted-foreground text-center py-4">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Globe className="h-4 w-4" />
+              Endpoints ({totalEndpoints})
+            </div>
+            {endpointEntries.length === 0 ? (
+              <Card>
+                <CardContent className="text-sm text-muted-foreground text-center py-4">
                   No endpoint details available
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {endpointEntries.map(([endpoint, methods], endpointIndex) => (
-                    <div key={endpointIndex} className="space-y-2">
-                      <div className="font-medium text-sm">{endpoint}</div>
-                      <div className="ml-4 space-y-3">
-                        {Object.entries(methods).map(
-                          ([method, details], methodIndex) => (
-                            <div key={methodIndex} className="space-y-2">
-                              <div className="flex items-center gap-2">
-                                <Badge variant="secondary" className="text-xs">
-                                  {method.toUpperCase()}
-                                </Badge>
-                              </div>
-                              {details.reasons &&
-                                details.reasons.length > 0 && (
-                                  <div className="ml-2 space-y-1">
-                                    {details.reasons.map(
-                                      (reason, reasonIndex) => (
-                                        <div
-                                          key={reasonIndex}
-                                          className="text-xs text-muted-foreground p-1 bg-muted rounded"
-                                        >
-                                          {reason}
-                                        </div>
-                                      ),
-                                    )}
-                                  </div>
-                                )}
-                            </div>
-                          ),
-                        )}
+                </CardContent>
+              </Card>
+            ) : (
+              endpointEntries.flatMap(([endpoint, methods]) =>
+                Object.entries(methods).map(([method, details]) => (
+                  <Card key={`${endpoint}-${method}`}>
+                    <CardHeader>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="text-xs">
+                          {method.toUpperCase()}
+                        </Badge>
+                        <CardTitle className="text-sm font-mono">
+                          {endpoint}
+                        </CardTitle>
                       </div>
-                      {endpointIndex < endpointEntries.length - 1 && (
-                        <Separator className="my-2" />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    </CardHeader>
+                    {details.reasons && details.reasons.length > 0 && (
+                      <CardContent>
+                        <div className="space-y-1">
+                          {details.reasons.map((reason, reasonIndex) => (
+                            <div
+                              key={reasonIndex}
+                              className="text-xs text-muted-foreground p-2 bg-muted rounded"
+                            >
+                              {reason}
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    )}
+                  </Card>
+                )),
+              )
+            )}
+          </div>
         </div>
       </SheetContent>
     </Sheet>
