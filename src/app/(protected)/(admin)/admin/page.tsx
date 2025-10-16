@@ -4,7 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UsersManagement } from "@/components/backoffice/users-management";
 import { TeamsManagement } from "@/components/backoffice/teams-management";
-import { Users, Users2 } from "lucide-react";
+import { SentinelSettings } from "@/components/backoffice/sentinel-settings";
+import { Users, Users2, Settings } from "lucide-react";
 
 export default function BackofficePage() {
   return (
@@ -15,7 +16,7 @@ export default function BackofficePage() {
       </div>
 
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Users
@@ -23,6 +24,10 @@ export default function BackofficePage() {
           <TabsTrigger value="teams" className="flex items-center gap-2">
             <Users2 className="h-4 w-4" />
             Teams
+          </TabsTrigger>
+          <TabsTrigger value="sentinel" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Sentinel
           </TabsTrigger>
         </TabsList>
 
@@ -44,6 +49,17 @@ export default function BackofficePage() {
             </CardHeader>
             <CardContent>
               <TeamsManagement />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="sentinel" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Sentinel Configuration</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SentinelSettings />
             </CardContent>
           </Card>
         </TabsContent>
