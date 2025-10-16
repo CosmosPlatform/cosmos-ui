@@ -182,20 +182,22 @@ export function SentinelSettings() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Monitoring Interval</p>
-              <p className="text-sm text-muted-foreground">
-                How often the sentinel checks applications
-              </p>
+          {settings.enabled && (
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Monitoring Interval</p>
+                <p className="text-sm text-muted-foreground">
+                  How often the sentinel checks applications
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="font-mono text-lg">
+                  {formatInterval(settings.interval)}
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="font-mono text-lg">
-                {formatInterval(settings.interval)}
-              </span>
-            </div>
-          </div>
+          )}
         </div>
       ) : (
         <Alert variant="destructive">
