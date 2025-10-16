@@ -139,7 +139,7 @@ export function SentinelSettings() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-2xl">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Settings className="h-5 w-5" />
