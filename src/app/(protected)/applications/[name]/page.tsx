@@ -606,64 +606,71 @@ export default function ApplicationDetailPage() {
               )}
 
               {/* Monitoring Information Card */}
-              {application.monitoringInformation &&
-                (application.monitoringInformation.hasOpenAPI ||
-                  application.monitoringInformation.hasOpenClient) && (
-                  <div className="flex-1 min-w-[300px] flex flex-col">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <Monitor className="h-4 w-4 text-primary" />
+              <div className="flex-1 min-w-[300px] flex flex-col">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Monitor className="h-4 w-4 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-lg">
+                    Monitoring Information
+                  </h3>
+                </div>
+                <div className="bg-gradient-to-br from-muted/50 to-muted p-4 rounded-lg flex-1 border border-border/50 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex flex-col gap-3">
+                    {/* OpenAPI Status */}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-muted-foreground text-sm">
+                          OpenAPI:
+                        </span>
+                        {application.monitoringInformation?.hasOpenAPI ? (
+                          <span className="inline-flex items-center gap-1 text-green-600 font-semibold text-sm">
+                            <span className="h-2 w-2 bg-green-600 rounded-full animate-pulse"></span>
+                            Enabled
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-muted-foreground font-semibold text-sm">
+                            <span className="h-2 w-2 bg-muted-foreground/50 rounded-full"></span>
+                            Disabled
+                          </span>
+                        )}
                       </div>
-                      <h3 className="font-semibold text-lg">
-                        Monitoring Information
-                      </h3>
+                      {application.monitoringInformation?.hasOpenAPI &&
+                        application.monitoringInformation.openAPIPath && (
+                          <div className="text-xs text-muted-foreground ml-2 font-mono bg-background/50 px-2 py-1 rounded inline-block">
+                            {application.monitoringInformation.openAPIPath}
+                          </div>
+                        )}
                     </div>
-                    <div className="bg-gradient-to-br from-muted/50 to-muted p-4 rounded-lg flex-1 border border-border/50 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex flex-col gap-3">
-                        {application.monitoringInformation.hasOpenAPI && (
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-muted-foreground text-sm">
-                                OpenAPI:
-                              </span>
-                              <span className="inline-flex items-center gap-1 text-green-600 font-semibold text-sm">
-                                <span className="h-2 w-2 bg-green-600 rounded-full animate-pulse"></span>
-                                Enabled
-                              </span>
-                            </div>
-                            {application.monitoringInformation.openAPIPath && (
-                              <div className="text-xs text-muted-foreground ml-2 font-mono bg-background/50 px-2 py-1 rounded inline-block">
-                                {application.monitoringInformation.openAPIPath}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        {application.monitoringInformation.hasOpenClient && (
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-muted-foreground text-sm">
-                                Open Client:
-                              </span>
-                              <span className="inline-flex items-center gap-1 text-green-600 font-semibold text-sm">
-                                <span className="h-2 w-2 bg-green-600 rounded-full animate-pulse"></span>
-                                Enabled
-                              </span>
-                            </div>
-                            {application.monitoringInformation
-                              .openClientPath && (
-                              <div className="text-xs text-muted-foreground ml-2 font-mono bg-background/50 px-2 py-1 rounded inline-block">
-                                {
-                                  application.monitoringInformation
-                                    .openClientPath
-                                }
-                              </div>
-                            )}
-                          </div>
+
+                    {/* Open Client Status */}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-muted-foreground text-sm">
+                          Open Client:
+                        </span>
+                        {application.monitoringInformation?.hasOpenClient ? (
+                          <span className="inline-flex items-center gap-1 text-green-600 font-semibold text-sm">
+                            <span className="h-2 w-2 bg-green-600 rounded-full animate-pulse"></span>
+                            Enabled
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-muted-foreground font-semibold text-sm">
+                            <span className="h-2 w-2 bg-muted-foreground/50 rounded-full"></span>
+                            Disabled
+                          </span>
                         )}
                       </div>
+                      {application.monitoringInformation?.hasOpenClient &&
+                        application.monitoringInformation.openClientPath && (
+                          <div className="text-xs text-muted-foreground ml-2 font-mono bg-background/50 px-2 py-1 rounded inline-block">
+                            {application.monitoringInformation.openClientPath}
+                          </div>
+                        )}
                     </div>
                   </div>
-                )}
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
