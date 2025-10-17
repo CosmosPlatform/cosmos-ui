@@ -517,11 +517,12 @@ export default function ApplicationDetailPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4">
-              {application.team && (
-                <div>
-                  <h3 className="font-semibold mb-2">Team Information</h3>
-                  <div className="bg-muted p-4 rounded-lg">
+            <div className="flex flex-wrap gap-4">
+              {/* Team Information Card */}
+              <div className="flex-1 min-w-[300px]">
+                <h3 className="font-semibold mb-2">Team Information</h3>
+                <div className="bg-muted p-4 rounded-lg">
+                  {application.team ? (
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">Name:</span>
@@ -534,48 +535,40 @@ export default function ApplicationDetailPage() {
                         </span>
                       </div>
                     </div>
-                  </div>
-                </div>
-              )}
-
-              {!application.team && (
-                <div>
-                  <h3 className="font-semibold mb-2">Team Information</h3>
-                  <div className="bg-muted p-4 rounded-lg">
+                  ) : (
                     <span className="text-muted-foreground">
                       No team assigned
                     </span>
-                  </div>
+                  )}
                 </div>
-              )}
+              </div>
 
+              {/* Git Information Card */}
               {application.gitInformation && (
-                <div>
+                <div className="flex-1 min-w-[300px]">
                   <h3 className="font-semibold mb-2">Git Information</h3>
                   <div className="bg-muted p-4 rounded-lg">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
                         <span className="font-medium">Provider:</span>
-                        <span className="ml-2 capitalize">
+                        <span className="capitalize">
                           {application.gitInformation.provider}
                         </span>
                       </div>
-                      <div>
-                        <span className="font-medium">Branch:</span>
-                        <span className="ml-2">
-                          {application.gitInformation.repositoryBranch}
-                        </span>
-                      </div>
-                      <div>
+                      <div className="flex items-center gap-2">
                         <span className="font-medium">Owner:</span>
-                        <span className="ml-2">
+                        <span>
                           {application.gitInformation.repositoryOwner}
                         </span>
                       </div>
-                      <div>
+                      <div className="flex items-center gap-2">
                         <span className="font-medium">Repository:</span>
-                        <span className="ml-2">
-                          {application.gitInformation.repositoryName}
+                        <span>{application.gitInformation.repositoryName}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Branch:</span>
+                        <span>
+                          {application.gitInformation.repositoryBranch}
                         </span>
                       </div>
                     </div>
@@ -583,25 +576,26 @@ export default function ApplicationDetailPage() {
                 </div>
               )}
 
+              {/* Monitoring Information Card */}
               {application.monitoringInformation &&
                 (application.monitoringInformation.hasOpenAPI ||
                   application.monitoringInformation.hasOpenClient) && (
-                  <div>
+                  <div className="flex-1 min-w-[300px]">
                     <h3 className="font-semibold mb-2">
                       Monitoring Information
                     </h3>
                     <div className="bg-muted p-4 rounded-lg">
-                      <div className="space-y-3">
+                      <div className="flex flex-col gap-2">
                         {application.monitoringInformation.hasOpenAPI && (
                           <div>
-                            <span className="font-medium">
-                              OpenAPI Documentation:
-                            </span>
-                            <span className="ml-2 text-green-600">
-                              ✓ Enabled
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">
+                                OpenAPI Documentation:
+                              </span>
+                              <span className="text-green-600">✓ Enabled</span>
+                            </div>
                             {application.monitoringInformation.openAPIPath && (
-                              <div className="text-sm text-muted-foreground mt-1">
+                              <div className="text-sm text-muted-foreground ml-2">
                                 Path:{" "}
                                 {application.monitoringInformation.openAPIPath}
                               </div>
@@ -610,15 +604,15 @@ export default function ApplicationDetailPage() {
                         )}
                         {application.monitoringInformation.hasOpenClient && (
                           <div>
-                            <span className="font-medium">
-                              Open Client Documentation:
-                            </span>
-                            <span className="ml-2 text-green-600">
-                              ✓ Enabled
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">
+                                Open Client Documentation:
+                              </span>
+                              <span className="text-green-600">✓ Enabled</span>
+                            </div>
                             {application.monitoringInformation
                               .openClientPath && (
-                              <div className="text-sm text-muted-foreground mt-1">
+                              <div className="text-sm text-muted-foreground ml-2">
                                 Path:{" "}
                                 {
                                   application.monitoringInformation
