@@ -517,11 +517,11 @@ export default function ApplicationDetailPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-4 items-stretch">
               {/* Team Information Card */}
-              <div className="flex-1 min-w-[300px]">
+              <div className="flex-1 min-w-[300px] flex flex-col">
                 <h3 className="font-semibold mb-2">Team Information</h3>
-                <div className="bg-muted p-4 rounded-lg">
+                <div className="bg-muted p-4 rounded-lg flex-1">
                   {application.team ? (
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center gap-2">
@@ -545,9 +545,9 @@ export default function ApplicationDetailPage() {
 
               {/* Git Information Card */}
               {application.gitInformation && (
-                <div className="flex-1 min-w-[300px]">
+                <div className="flex-1 min-w-[300px] flex flex-col">
                   <h3 className="font-semibold mb-2">Git Information</h3>
-                  <div className="bg-muted p-4 rounded-lg">
+                  <div className="bg-muted p-4 rounded-lg flex-1">
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">Provider:</span>
@@ -580,11 +580,11 @@ export default function ApplicationDetailPage() {
               {application.monitoringInformation &&
                 (application.monitoringInformation.hasOpenAPI ||
                   application.monitoringInformation.hasOpenClient) && (
-                  <div className="flex-1 min-w-[300px]">
+                  <div className="flex-1 min-w-[300px] flex flex-col">
                     <h3 className="font-semibold mb-2">
                       Monitoring Information
                     </h3>
-                    <div className="bg-muted p-4 rounded-lg">
+                    <div className="bg-muted p-4 rounded-lg flex-1">
                       <div className="flex flex-col gap-2">
                         {application.monitoringInformation.hasOpenAPI && (
                           <div>
