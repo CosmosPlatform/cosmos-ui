@@ -323,19 +323,17 @@ export default function ApplicationDetailPage() {
       };
     }
 
-    // Add monitoring information if any monitoring is enabled
-    if (editFormData.hasOpenAPI || editFormData.hasOpenClient) {
-      requestData.monitoringInformation = {
-        hasOpenAPI: editFormData.hasOpenAPI,
-        openAPIPath: editFormData.hasOpenAPI
-          ? editFormData.openAPIPath
-          : undefined,
-        hasOpenClient: editFormData.hasOpenClient,
-        openClientPath: editFormData.hasOpenClient
-          ? editFormData.openClientPath
-          : undefined,
-      };
-    }
+    // Always add monitoring information to allow disabling it
+    requestData.monitoringInformation = {
+      hasOpenAPI: editFormData.hasOpenAPI,
+      openAPIPath: editFormData.hasOpenAPI
+        ? editFormData.openAPIPath
+        : undefined,
+      hasOpenClient: editFormData.hasOpenClient,
+      openClientPath: editFormData.hasOpenClient
+        ? editFormData.openClientPath
+        : undefined,
+    };
 
     const result = await updateApplication(applicationName, requestData);
 
