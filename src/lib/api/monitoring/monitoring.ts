@@ -123,3 +123,36 @@ export async function getCompleteApplicationMonitoring(
     `/monitoring/complete/${application}`,
   );
 }
+
+// -----------------------------------------------------------------
+
+export type GetSentinelSettingsResponse = {
+  interval: number;
+  enabled: boolean;
+};
+
+export async function getSentinelSettings(): Promise<
+  ApiResult<GetSentinelSettingsResponse>
+> {
+  return sendRequestWithAuth<never, GetSentinelSettingsResponse>(
+    "GET",
+    `/monitoring/sentinel/settings`,
+  );
+}
+
+// -----------------------------------------------------------------
+
+export type UpdateSentinelSettingsRequest = {
+  interval?: number;
+  enabled?: boolean;
+};
+
+export async function updateSentinelSettings(
+  settings: UpdateSentinelSettingsRequest,
+): Promise<ApiResult<null>> {
+  return sendRequestWithAuth<UpdateSentinelSettingsRequest, null>(
+    "PUT",
+    `/monitoring/sentinel/settings`,
+    settings,
+  );
+}

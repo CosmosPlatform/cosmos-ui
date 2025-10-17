@@ -58,6 +58,7 @@ import {
   Monitor,
   FileCode,
   Users,
+  Building2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -323,19 +324,17 @@ export default function ApplicationDetailPage() {
       };
     }
 
-    // Add monitoring information if any monitoring is enabled
-    if (editFormData.hasOpenAPI || editFormData.hasOpenClient) {
-      requestData.monitoringInformation = {
-        hasOpenAPI: editFormData.hasOpenAPI,
-        openAPIPath: editFormData.hasOpenAPI
-          ? editFormData.openAPIPath
-          : undefined,
-        hasOpenClient: editFormData.hasOpenClient,
-        openClientPath: editFormData.hasOpenClient
-          ? editFormData.openClientPath
-          : undefined,
-      };
-    }
+    // Always add monitoring information to allow disabling it
+    requestData.monitoringInformation = {
+      hasOpenAPI: editFormData.hasOpenAPI,
+      openAPIPath: editFormData.hasOpenAPI
+        ? editFormData.openAPIPath
+        : undefined,
+      hasOpenClient: editFormData.hasOpenClient,
+      openClientPath: editFormData.hasOpenClient
+        ? editFormData.openClientPath
+        : undefined,
+    };
 
     const result = await updateApplication(applicationName, requestData);
 
@@ -519,65 +518,86 @@ export default function ApplicationDetailPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4">
-              {application.team && (
-                <div>
-                  <h3 className="font-semibold mb-2">Team Information</h3>
-                  <div className="bg-muted p-4 rounded-lg">
-                    <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap gap-4 items-stretch">
+              {/* Team Information Card */}
+              <div className="flex-1 min-w-[300px] flex flex-col">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Building2 className="h-4 w-4 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-lg">Team Information</h3>
+                </div>
+                <div className="bg-gradient-to-br from-muted/50 to-muted p-4 rounded-lg flex-1 border border-border/50 shadow-sm hover:shadow-md transition-shadow">
+                  {application.team ? (
+                    <div className="flex flex-col gap-3">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium">Name:</span>
-                        <span>{application.team.name}</span>
+                        <span className="font-medium text-muted-foreground text-sm">
+                          Name:
+                        </span>
+                        <span className="font-semibold">
+                          {application.team.name}
+                        </span>
                       </div>
                       <div className="flex items-start gap-2">
-                        <span className="font-medium">Description:</span>
-                        <span className="flex-1">
+                        <span className="font-medium text-muted-foreground text-sm">
+                          Description:
+                        </span>
+                        <span className="flex-1 text-sm">
                           {application.team.description}
                         </span>
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <span className="text-muted-foreground text-sm italic">
+                        No team assigned
+                      </span>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
 
-              {!application.team && (
-                <div>
-                  <h3 className="font-semibold mb-2">Team Information</h3>
-                  <div className="bg-muted p-4 rounded-lg">
-                    <span className="text-muted-foreground">
-                      No team assigned
-                    </span>
-                  </div>
-                </div>
-              )}
-
+              {/* Git Information Card */}
               {application.gitInformation && (
-                <div>
-                  <h3 className="font-semibold mb-2">Git Information</h3>
-                  <div className="bg-muted p-4 rounded-lg">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <span className="font-medium">Provider:</span>
-                        <span className="ml-2 capitalize">
+                <div className="flex-1 min-w-[300px] flex flex-col">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <GitBranch className="h-4 w-4 text-primary" />
+                    </div>
+                    <h3 className="font-semibold text-lg">Git Information</h3>
+                  </div>
+                  <div className="bg-gradient-to-br from-muted/50 to-muted p-4 rounded-lg flex-1 border border-border/50 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-muted-foreground text-sm">
+                          Provider:
+                        </span>
+                        <span className="font-semibold capitalize">
                           {application.gitInformation.provider}
                         </span>
                       </div>
-                      <div>
-                        <span className="font-medium">Branch:</span>
-                        <span className="ml-2">
-                          {application.gitInformation.repositoryBranch}
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-muted-foreground text-sm">
+                          Owner:
                         </span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Owner:</span>
-                        <span className="ml-2">
+                        <span className="font-semibold">
                           {application.gitInformation.repositoryOwner}
                         </span>
                       </div>
-                      <div>
-                        <span className="font-medium">Repository:</span>
-                        <span className="ml-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-muted-foreground text-sm">
+                          Repository:
+                        </span>
+                        <span className="font-semibold">
                           {application.gitInformation.repositoryName}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-muted-foreground text-sm">
+                          Branch:
+                        </span>
+                        <span className="font-mono text-sm bg-background/50 px-2 py-0.5 rounded">
+                          {application.gitInformation.repositoryBranch}
                         </span>
                       </div>
                     </div>
@@ -585,55 +605,72 @@ export default function ApplicationDetailPage() {
                 </div>
               )}
 
-              {application.monitoringInformation &&
-                (application.monitoringInformation.hasOpenAPI ||
-                  application.monitoringInformation.hasOpenClient) && (
-                  <div>
-                    <h3 className="font-semibold mb-2">
-                      Monitoring Information
-                    </h3>
-                    <div className="bg-muted p-4 rounded-lg">
-                      <div className="space-y-3">
-                        {application.monitoringInformation.hasOpenAPI && (
-                          <div>
-                            <span className="font-medium">
-                              OpenAPI Documentation:
-                            </span>
-                            <span className="ml-2 text-green-600">
-                              ✓ Enabled
-                            </span>
-                            {application.monitoringInformation.openAPIPath && (
-                              <div className="text-sm text-muted-foreground mt-1">
-                                Path:{" "}
-                                {application.monitoringInformation.openAPIPath}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        {application.monitoringInformation.hasOpenClient && (
-                          <div>
-                            <span className="font-medium">
-                              Open Client Documentation:
-                            </span>
-                            <span className="ml-2 text-green-600">
-                              ✓ Enabled
-                            </span>
-                            {application.monitoringInformation
-                              .openClientPath && (
-                              <div className="text-sm text-muted-foreground mt-1">
-                                Path:{" "}
-                                {
-                                  application.monitoringInformation
-                                    .openClientPath
-                                }
-                              </div>
-                            )}
-                          </div>
+              {/* Monitoring Information Card */}
+              <div className="flex-1 min-w-[300px] flex flex-col">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Monitor className="h-4 w-4 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-lg">
+                    Monitoring Information
+                  </h3>
+                </div>
+                <div className="bg-gradient-to-br from-muted/50 to-muted p-4 rounded-lg flex-1 border border-border/50 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex flex-col gap-3">
+                    {/* OpenAPI Status */}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-muted-foreground text-sm">
+                          OpenAPI:
+                        </span>
+                        {application.monitoringInformation?.hasOpenAPI ? (
+                          <span className="inline-flex items-center gap-1 text-green-600 font-semibold text-sm">
+                            <span className="h-2 w-2 bg-green-600 rounded-full animate-pulse"></span>
+                            Enabled
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-muted-foreground font-semibold text-sm">
+                            <span className="h-2 w-2 bg-muted-foreground/50 rounded-full"></span>
+                            Disabled
+                          </span>
                         )}
                       </div>
+                      {application.monitoringInformation?.hasOpenAPI &&
+                        application.monitoringInformation.openAPIPath && (
+                          <div className="text-xs text-muted-foreground ml-2 font-mono bg-background/50 px-2 py-1 rounded inline-block">
+                            {application.monitoringInformation.openAPIPath}
+                          </div>
+                        )}
+                    </div>
+
+                    {/* Open Client Status */}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-muted-foreground text-sm">
+                          Open Client:
+                        </span>
+                        {application.monitoringInformation?.hasOpenClient ? (
+                          <span className="inline-flex items-center gap-1 text-green-600 font-semibold text-sm">
+                            <span className="h-2 w-2 bg-green-600 rounded-full animate-pulse"></span>
+                            Enabled
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-muted-foreground font-semibold text-sm">
+                            <span className="h-2 w-2 bg-muted-foreground/50 rounded-full"></span>
+                            Disabled
+                          </span>
+                        )}
+                      </div>
+                      {application.monitoringInformation?.hasOpenClient &&
+                        application.monitoringInformation.openClientPath && (
+                          <div className="text-xs text-muted-foreground ml-2 font-mono bg-background/50 px-2 py-1 rounded inline-block">
+                            {application.monitoringInformation.openClientPath}
+                          </div>
+                        )}
                     </div>
                   </div>
-                )}
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
