@@ -59,7 +59,6 @@ import {
   FileCode,
   Users,
   Building2,
-  Github,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -563,7 +562,7 @@ export default function ApplicationDetailPage() {
                 <div className="flex-1 min-w-[300px] flex flex-col">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="p-2 bg-primary/10 rounded-lg">
-                      <Github className="h-4 w-4 text-primary" />
+                      <GitBranch className="h-4 w-4 text-primary" />
                     </div>
                     <h3 className="font-semibold text-lg">Git Information</h3>
                   </div>
