@@ -367,8 +367,7 @@ export default function TokensPage() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {tokens.map((token, index) => {
-            // Handle different possible property names
+          {tokens.map((token) => {
             const tokenName = token.name;
             const tokenTeam = token.team;
 
