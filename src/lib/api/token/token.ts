@@ -1,8 +1,8 @@
 import { ApiResult, sendRequestWithAuth } from "@/lib/api/cosmosServerClient";
 
 export type Token = {
-  Name: string;
-  Team: string;
+  name: string;
+  team: string;
 };
 
 // -----------------------------------------------------------------
