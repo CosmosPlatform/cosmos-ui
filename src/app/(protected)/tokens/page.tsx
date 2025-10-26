@@ -403,9 +403,6 @@ export default function TokensPage() {
                       variant="ghost"
                       size="icon"
                       onClick={() => {
-                        console.log("Full token object:", token);
-                        console.log("Token Name:", tokenName);
-                        console.log("Token keys:", Object.keys(token));
                         copyTokenName(tokenName);
                       }}
                       title="Copy token name"
