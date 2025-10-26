@@ -24,15 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Key,
-  AlertCircle,
-  Plus,
-  Copy,
-  Eye,
-  EyeOff,
-  Loader2,
-} from "lucide-react";
+import { Key, AlertCircle, Plus, Copy, Loader2, Shield } from "lucide-react";
 import { getOwnUser } from "@/lib/api/users/users";
 import {
   getTokens,
@@ -57,7 +49,7 @@ export default function TokensPage() {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [visibleTokens, setVisibleTokens] = useState<Set<string>>(new Set());
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -91,6 +83,7 @@ export default function TokensPage() {
           if (tokensResult.error) {
             setError("Failed to fetch tokens");
           } else {
+            console.log("Loaded tokens:", tokensResult.data.tokens);
             setTokens(tokensResult.data.tokens || []);
           }
         }
@@ -114,21 +107,16 @@ export default function TokensPage() {
     }
   };
 
-  const toggleTokenVisibility = (tokenName: string) => {
-    const newVisible = new Set(visibleTokens);
-    if (newVisible.has(tokenName)) {
-      newVisible.delete(tokenName);
-    } else {
-      newVisible.add(tokenName);
-    }
-    setVisibleTokens(newVisible);
-  };
-
   const copyTokenName = async (tokenName: string) => {
     try {
+      if (!tokenName) {
+        toast.error("Token name is empty");
+        return;
+      }
       await navigator.clipboard.writeText(tokenName);
-      toast.success("Token name copied to clipboard");
-    } catch {
+      toast.success(`Token name "${tokenName}" copied to clipboard`);
+    } catch (error) {
+      console.error("Copy failed:", error);
       toast.error("Failed to copy token name");
     }
   };
@@ -213,20 +201,22 @@ export default function TokensPage() {
           </div>
           <Skeleton className="h-10 w-24" />
         </div>
-        <div className="grid gap-4">
-          {[...Array(3)].map((_, index) => (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, index) => (
             <Card key={index}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="space-y-2 flex-1">
-                    <Skeleton className="h-5 w-32" />
-                    <Skeleton className="h-4 w-24" />
+                  <div className="flex items-center gap-3 flex-1">
+                    <Skeleton className="w-10 h-10 rounded-lg" />
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-8 w-40" />
+                      <div className="flex gap-2">
+                        <Skeleton className="h-4 w-16" />
+                        <Skeleton className="h-4 w-20" />
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Skeleton className="h-8 w-8" />
-                    <Skeleton className="h-8 w-8" />
-                    <Skeleton className="h-8 w-8" />
-                  </div>
+                  <Skeleton className="h-8 w-8" />
                 </div>
               </CardContent>
             </Card>
@@ -354,19 +344,21 @@ export default function TokensPage() {
 
       {tokens.length === 0 ? (
         <Card>
-          <CardContent className="p-12">
-            <div className="text-center text-muted-foreground">
-              <Key className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-semibold mb-2">No tokens found</h3>
-              <p className="mb-4">
-                Your team doesn't have any tokens yet. Create your first token
-                to get started.
+          <CardContent className="p-16">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Key className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">No tokens found</h3>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                Your team doesn't have any repository tokens yet. Create your
+                first token to enable access to private repositories.
               </p>
               <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button size="lg">
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Token
+                    Create Your First Token
                   </Button>
                 </DialogTrigger>
               </Dialog>
@@ -374,83 +366,95 @@ export default function TokensPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
-          {tokens.map((token) => (
-            <Card
-              key={token.Name}
-              className="hover:shadow-md transition-shadow"
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-2 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-semibold">{token.Name}</h3>
-                      <Badge variant="outline" className="text-xs">
-                        {token.Team}
-                      </Badge>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {tokens.map((token, index) => {
+            // Handle different possible property names
+            const tokenName =
+              token.Name || (token as any).name || `token-${index}`;
+            const tokenTeam =
+              token.Team || (token as any).team || "Unknown Team";
+
+            return (
+              <Card
+                key={tokenName}
+                className="hover:shadow-md transition-shadow group"
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                          <Shield className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-2xl font-semibold truncate group-hover:text-primary transition-colors">
+                            {tokenName}
+                          </h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="secondary" className="text-xs">
+                              {tokenTeam}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              Repository token
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>Token value:</span>
-                      {visibleTokens.has(token.Name) ? (
-                        <code className="bg-muted px-2 py-1 rounded text-xs font-mono">
-                          {token.Name}_secret_value_placeholder
-                        </code>
-                      ) : (
-                        <code className="bg-muted px-2 py-1 rounded text-xs">
-                          ••••••••••••••••
-                        </code>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="icon"
-                      onClick={() => toggleTokenVisibility(token.Name)}
-                      title={
-                        visibleTokens.has(token.Name)
-                          ? "Hide token"
-                          : "Show token"
-                      }
-                    >
-                      {visibleTokens.has(token.Name) ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => copyTokenName(token.Name)}
+                      onClick={() => {
+                        console.log("Full token object:", token);
+                        console.log("Token Name:", tokenName);
+                        console.log("Token keys:", Object.keys(token));
+                        copyTokenName(tokenName);
+                      }}
                       title="Copy token name"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Token Information</CardTitle>
+          <CardTitle className="text-lg">About Repository Tokens</CardTitle>
           <CardDescription>
-            Tokens are used to authenticate API requests for your team's
-            applications.
+            Tokens are used to access information from your team's application
+            repositories when they are private.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <p>
-            • Each token is associated with your team:{" "}
-            <strong>{user.team.name}</strong>
-          </p>
-          <p>• Keep your tokens secure and don't share them publicly</p>
-          <p>• You can create multiple tokens for different purposes</p>
-          <p>• Contact your administrator if you need help managing tokens</p>
+        <CardContent className="space-y-3 text-sm text-muted-foreground">
+          <div className="grid gap-3 md:grid-cols-2">
+            <div>
+              <p className="font-medium text-foreground mb-1">Requirements</p>
+              <ul className="space-y-1">
+                <li>
+                  • Tokens should have <strong>read permissions</strong>
+                </li>
+                <li>
+                  • Each token belongs to team:{" "}
+                  <strong>{user.team.name}</strong>
+                </li>
+                <li>• Used for accessing private repositories</li>
+              </ul>
+            </div>
+            <div>
+              <p className="font-medium text-foreground mb-1">Best Practices</p>
+              <ul className="space-y-1">
+                <li>• Use descriptive names for easy identification</li>
+                <li>• Keep tokens secure and don't share publicly</li>
+                <li>• Create separate tokens for different purposes</li>
+              </ul>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
