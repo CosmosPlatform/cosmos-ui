@@ -54,7 +54,6 @@ import {
 } from "@/lib/api/applications/applications";
 import { getTeams } from "@/lib/api/teams/teams";
 import { getTokens, type Token } from "@/lib/api/token/token";
-import { getOwnUser } from "@/lib/api/users/users";
 
 // Default paths for monitoring
 const DEFAULT_OPENAPI_PATH = "docs/swagger.json";
@@ -64,7 +63,6 @@ export default function Page() {
   const [applications, setApplications] = useState<Array<Application>>([]);
   const [teams, setTeams] = useState<Array<Team>>([]);
   const [tokens, setTokens] = useState<Array<Token>>([]);
-  const [_currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -124,20 +122,6 @@ export default function Page() {
         setTeams([]);
       } else {
         setTeams(teamsResult.data?.teams || []);
-      }
-
-      // Load current user
-      const userResult = await getOwnUser();
-      if (!userResult.error) {
-        setCurrentUser(userResult.data.user);
-
-        // If user has a team, load tokens for that team
-        if (userResult.data.user.team) {
-          const tokensResult = await getTokens(userResult.data.user.team.name);
-          if (!tokensResult.error) {
-            setTokens(tokensResult.data.tokens || []);
-          }
-        }
       }
 
       setLoading(false);
