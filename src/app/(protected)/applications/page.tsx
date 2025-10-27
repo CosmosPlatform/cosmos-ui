@@ -53,6 +53,8 @@ import {
   Team,
 } from "@/lib/api/applications/applications";
 import { getTeams } from "@/lib/api/teams/teams";
+import { getTokens, type Token } from "@/lib/api/token/token";
+import { getOwnUser } from "@/lib/api/users/users";
 
 // Default paths for monitoring
 const DEFAULT_OPENAPI_PATH = "docs/swagger.json";
@@ -61,6 +63,8 @@ const DEFAULT_OPEN_CLIENT_PATH = "docs/openclient.json";
 export default function Page() {
   const [applications, setApplications] = useState<Array<Application>>([]);
   const [teams, setTeams] = useState<Array<Team>>([]);
+  const [tokens, setTokens] = useState<Array<Token>>([]);
+  const [_currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -75,6 +79,7 @@ export default function Page() {
     name: "",
     description: "",
     team: "",
+    tokenName: "",
     gitProvider: "",
     gitBranch: "",
     gitOwner: "",
@@ -103,6 +108,7 @@ export default function Page() {
     const loadData = async () => {
       setLoading(true);
 
+      // Load applications
       const appsResult = await getApplicationsWithFilter("");
       if (appsResult.error) {
         toast.error("Failed to load applications: " + appsResult.error.error);
@@ -111,12 +117,27 @@ export default function Page() {
         setApplications(appsResult.data?.applications || []);
       }
 
+      // Load teams
       const teamsResult = await getTeams();
       if (teamsResult.error) {
         toast.error("Failed to load teams: " + teamsResult.error.error);
         setTeams([]);
       } else {
         setTeams(teamsResult.data?.teams || []);
+      }
+
+      // Load current user
+      const userResult = await getOwnUser();
+      if (!userResult.error) {
+        setCurrentUser(userResult.data.user);
+
+        // If user has a team, load tokens for that team
+        if (userResult.data.user.team) {
+          const tokensResult = await getTokens(userResult.data.user.team.name);
+          if (!tokensResult.error) {
+            setTokens(tokensResult.data.tokens || []);
+          }
+        }
       }
 
       setLoading(false);
@@ -193,6 +214,11 @@ export default function Page() {
       requestData.team = formData.team;
     }
 
+    // Add tokenName if selected
+    if (formData.tokenName) {
+      requestData.tokenName = formData.tokenName;
+    }
+
     // Add git information if all fields are provided
     if (areAllGitFieldsFilled) {
       requestData.gitInformation = {
@@ -245,6 +271,25 @@ export default function Page() {
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
+
+    // If team is changed, load tokens for that team
+    if (field === "team" && typeof value === "string" && value) {
+      loadTokensForTeam(value);
+    }
+  };
+
+  const loadTokensForTeam = async (teamName: string) => {
+    try {
+      const tokensResult = await getTokens(teamName);
+      if (!tokensResult.error) {
+        setTokens(tokensResult.data.tokens || []);
+      } else {
+        setTokens([]);
+      }
+    } catch (error) {
+      console.error("Failed to load tokens:", error);
+      setTokens([]);
+    }
   };
 
   const resetForm = () => {
@@ -252,6 +297,7 @@ export default function Page() {
       name: "",
       description: "",
       team: "",
+      tokenName: "",
       gitProvider: "",
       gitBranch: "",
       gitOwner: "",
@@ -375,6 +421,37 @@ export default function Page() {
                   <p className="text-sm text-red-500">{errors.team}</p>
                 )}
               </div>
+
+              {formData.team && (
+                <div className="grid gap-2">
+                  <Label htmlFor="tokenName">Repository Token (Optional)</Label>
+                  <Select
+                    value={formData.tokenName || "none"}
+                    onValueChange={(value) =>
+                      handleInputChange(
+                        "tokenName",
+                        value === "none" ? "" : value,
+                      )
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a token (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No token</SelectItem>
+                      {tokens.map((token) => (
+                        <SelectItem key={token.name} value={token.name}>
+                          {token.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Select a token for private repository access. Leave empty if
+                    not needed.
+                  </p>
+                </div>
+              )}
 
               {/* Git Information Collapsible Section */}
               <Collapsible

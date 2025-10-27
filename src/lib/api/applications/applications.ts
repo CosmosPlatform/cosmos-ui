@@ -1,4 +1,5 @@
 import { ApiResult, sendRequestWithAuth } from "@/lib/api/cosmosServerClient";
+import { Token } from "@/lib/api/token/token";
 
 export type Team = {
   name: string;
@@ -11,6 +12,7 @@ export type Application = {
   team?: Team;
   gitInformation?: GitInformation;
   monitoringInformation?: MonitoringInformation;
+  token?: Token;
 };
 
 type CreateApplicationRequest = {
@@ -19,6 +21,7 @@ type CreateApplicationRequest = {
   team: string;
   gitInformation?: GitInformation;
   monitoringInformation?: MonitoringInformation;
+  tokenName: string;
 };
 
 type GitInformation = {
