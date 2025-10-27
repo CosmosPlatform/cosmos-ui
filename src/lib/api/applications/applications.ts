@@ -115,6 +115,7 @@ export type UpdateApplicationRequest = {
   team: string;
   gitInformation?: GitInformation;
   monitoringInformation?: MonitoringInformation;
+  tokenName: string;
 };
 
 export type UpdateApplicationResponse = {
