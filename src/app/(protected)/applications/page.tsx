@@ -406,37 +406,6 @@ export default function Page() {
                 )}
               </div>
 
-              {formData.team && (
-                <div className="grid gap-2">
-                  <Label htmlFor="tokenName">Repository Token (Optional)</Label>
-                  <Select
-                    value={formData.tokenName || "none"}
-                    onValueChange={(value) =>
-                      handleInputChange(
-                        "tokenName",
-                        value === "none" ? "" : value,
-                      )
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a token (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No token</SelectItem>
-                      {tokens.map((token) => (
-                        <SelectItem key={token.name} value={token.name}>
-                          {token.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Select a token for private repository access. Leave empty if
-                    not needed.
-                  </p>
-                </div>
-              )}
-
               {/* Git Information Collapsible Section */}
               <Collapsible
                 open={isGitSectionOpen}
@@ -547,6 +516,37 @@ export default function Page() {
                       <p className="text-sm text-red-500">{errors.gitBranch}</p>
                     )}
                   </div>
+
+                  {formData.team && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="tokenName">Repository Token (Optional)</Label>
+                      <Select
+                        value={formData.tokenName || "none"}
+                        onValueChange={(value) =>
+                          handleInputChange(
+                            "tokenName",
+                            value === "none" ? "" : value,
+                          )
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a token (optional)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No token</SelectItem>
+                          {tokens.map((token) => (
+                            <SelectItem key={token.name} value={token.name}>
+                              {token.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Select a token for private repository access. Leave empty if
+                        not needed.
+                      </p>
+                    </div>
+                  )}
 
                   {hasAnyGitField && !areAllGitFieldsFilled && (
                     <p className="text-sm text-muted-foreground bg-muted/50 p-2 rounded border">
