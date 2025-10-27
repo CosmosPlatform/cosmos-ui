@@ -59,6 +59,7 @@ import {
   FileCode,
   Users,
   Building2,
+  Key,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -600,6 +601,19 @@ export default function ApplicationDetailPage() {
                           {application.gitInformation.repositoryBranch}
                         </span>
                       </div>
+                      {application.token && (
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-muted-foreground text-sm">
+                            Token:
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <Key className="h-3 w-3 text-muted-foreground" />
+                            <span className="font-semibold">
+                              {application.token.name}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
