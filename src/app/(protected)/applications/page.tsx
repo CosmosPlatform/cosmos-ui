@@ -519,7 +519,9 @@ export default function Page() {
 
                   {formData.team && (
                     <div className="grid gap-2">
-                      <Label htmlFor="tokenName">Repository Token (Optional)</Label>
+                      <Label htmlFor="tokenName">
+                        Repository Token (Optional)
+                      </Label>
                       <Select
                         value={formData.tokenName || "none"}
                         onValueChange={(value) =>
@@ -542,8 +544,8 @@ export default function Page() {
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground">
-                        Select a token for private repository access. Leave empty if
-                        not needed.
+                        Select a token for private repository access. Leave
+                        empty if not needed.
                       </p>
                     </div>
                   )}
