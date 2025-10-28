@@ -49,3 +49,22 @@ export async function deleteToken(
     `/tokens/${teamName}/${tokenName}`,
   );
 }
+
+// -----------------------------------------------------------------
+
+export type UpdateTokenRequest = {
+  name?: string;
+  value?: string;
+};
+
+export async function updateToken(
+  teamName: string,
+  tokenName: string,
+  request: UpdateTokenRequest,
+): Promise<ApiResult<null>> {
+  return sendRequestWithAuth<UpdateTokenRequest, null>(
+    "PUT",
+    `/tokens/${teamName}/${tokenName}`,
+    request,
+  );
+}

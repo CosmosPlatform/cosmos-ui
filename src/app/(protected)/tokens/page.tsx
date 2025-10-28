@@ -43,14 +43,17 @@ import {
   Loader2,
   Shield,
   Trash2,
+  Edit,
 } from "lucide-react";
 import { getOwnUser } from "@/lib/api/users/users";
 import {
   getTokens,
   createToken,
   deleteToken,
+  updateToken,
   type Token,
   type CreateTokenRequest,
+  type UpdateTokenRequest,
 } from "@/lib/api/token/token";
 import { toast } from "sonner";
 
@@ -76,8 +79,21 @@ export default function TokensPage() {
   const [createTokenError, setCreateTokenError] = useState<string>("");
   const [deletingTokens, setDeletingTokens] = useState<Set<string>>(new Set());
 
+  // Edit token state
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [editingToken, setEditingToken] = useState<string | null>(null);
+  const [updateTokenError, setUpdateTokenError] = useState<string>("");
+  const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+
   // Form state
   const [formData, setFormData] = useState({
+    name: "",
+    value: "",
+  });
+
+  // Edit form state
+  const [editFormData, setEditFormData] = useState({
     name: "",
     value: "",
   });
@@ -239,6 +255,95 @@ export default function TokensPage() {
     }
   };
 
+  const handleEditToken = (tokenName: string) => {
+    setEditingToken(tokenName);
+    setEditFormData({
+      name: tokenName,
+      value: "",
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const validateEditForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    // At least one field should be provided for update
+    if (!editFormData.name.trim() && !editFormData.value.trim()) {
+      newErrors.general = "At least one field (name or value) must be provided";
+    }
+
+    setEditErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleUpdateToken = async () => {
+    setUpdateTokenError("");
+
+    if (!validateEditForm() || !user?.team || !editingToken) {
+      return;
+    }
+
+    setIsUpdating(true);
+
+    // Only include non-empty fields in the request
+    const requestData: UpdateTokenRequest = {};
+    if (editFormData.name.trim()) {
+      requestData.name = editFormData.name.trim();
+    }
+    if (editFormData.value.trim()) {
+      requestData.value = editFormData.value.trim();
+    }
+
+    const result = await updateToken(user.team.name, editingToken, requestData);
+
+    if (result.error) {
+      setUpdateTokenError(result.error.error || "Failed to update token");
+    } else {
+      toast.success("Token updated successfully!");
+
+      // Refresh the tokens list to get the latest data
+      await refreshTokens();
+
+      // Reset form and close dialog
+      resetEditForm();
+      setIsEditDialogOpen(false);
+    }
+
+    setIsUpdating(false);
+  };
+
+  const handleEditInputChange = (
+    field: keyof typeof editFormData,
+    value: string,
+  ) => {
+    setEditFormData((prev) => ({ ...prev, [field]: value }));
+    // Clear error for this field when user starts typing
+    if (editErrors[field]) {
+      setEditErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+    // Clear general error when user makes changes
+    if (updateTokenError) {
+      setUpdateTokenError("");
+    }
+  };
+
+  const resetEditForm = () => {
+    setEditFormData({
+      name: "",
+      value: "",
+    });
+    setEditErrors({});
+    setUpdateTokenError("");
+    setEditingToken(null);
+  };
+
+  const handleEditDialogOpenChange = (open: boolean) => {
+    setIsEditDialogOpen(open);
+    if (!open) {
+      resetEditForm();
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
@@ -390,6 +495,90 @@ export default function TokensPage() {
         </Dialog>
       </div>
 
+      {/* Edit Token Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Token</DialogTitle>
+            <DialogDescription>
+              Edit the token details. Only add a new value if you want to update
+              it. You can overwrite the name if needed. Only non-empty fields
+              will be updated.
+            </DialogDescription>
+          </DialogHeader>
+
+          {updateTokenError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{updateTokenError}</AlertDescription>
+            </Alert>
+          )}
+
+          {editErrors.general && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{editErrors.general}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-name">Token Name</Label>
+              <Input
+                id="edit-name"
+                value={editFormData.name}
+                onChange={(e) => handleEditInputChange("name", e.target.value)}
+                placeholder="Enter token name"
+                className={
+                  editErrors.name ? "border-red-500 focus:border-red-500" : ""
+                }
+              />
+              {editErrors.name && (
+                <p className="text-sm text-red-500">{editErrors.name}</p>
+              )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-value">Token Value (Optional)</Label>
+              <Textarea
+                id="edit-value"
+                value={editFormData.value}
+                onChange={(e) => handleEditInputChange("value", e.target.value)}
+                placeholder="Enter new token value (leave empty to keep current value)"
+                rows={3}
+                className={
+                  editErrors.value ? "border-red-500 focus:border-red-500" : ""
+                }
+              />
+              {editErrors.value && (
+                <p className="text-sm text-red-500">{editErrors.value}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Only provide a value if you want to update it. Leave empty to
+                keep the current value.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleEditDialogOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleUpdateToken}
+              disabled={isUpdating}
+            >
+              {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Update Token
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {tokens.length === 0 ? (
         <Card>
           <CardContent className="p-16">
@@ -456,6 +645,16 @@ export default function TokensPage() {
                         title="Copy token name"
                       >
                         <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          handleEditToken(tokenName);
+                        }}
+                        title="Edit token"
+                      >
+                        <Edit className="h-4 w-4" />
                       </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
