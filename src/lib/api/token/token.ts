@@ -37,3 +37,15 @@ export async function getTokens(
     `/tokens/${teamName}`,
   );
 }
+
+// -----------------------------------------------------------------
+
+export async function deleteToken(
+  teamName: string,
+  tokenName: string,
+): Promise<ApiResult<null>> {
+  return sendRequestWithAuth<never, null>(
+    "DELETE",
+    `/tokens/${teamName}/${tokenName}`,
+  );
+}

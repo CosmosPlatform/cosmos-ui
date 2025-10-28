@@ -21,14 +21,34 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Key, AlertCircle, Plus, Copy, Loader2, Shield } from "lucide-react";
+import {
+  Key,
+  AlertCircle,
+  Plus,
+  Copy,
+  Loader2,
+  Shield,
+  Trash2,
+} from "lucide-react";
 import { getOwnUser } from "@/lib/api/users/users";
 import {
   getTokens,
   createToken,
+  deleteToken,
   type Token,
   type CreateTokenRequest,
 } from "@/lib/api/token/token";
@@ -54,6 +74,7 @@ export default function TokensPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [createTokenError, setCreateTokenError] = useState<string>("");
+  const [deletingTokens, setDeletingTokens] = useState<Set<string>>(new Set());
 
   // Form state
   const [formData, setFormData] = useState({
@@ -188,6 +209,33 @@ export default function TokensPage() {
     setIsDialogOpen(open);
     if (!open) {
       resetForm();
+    }
+  };
+
+  const handleDeleteToken = async (tokenName: string) => {
+    if (!user?.team) return;
+
+    setDeletingTokens((prev) => new Set([...prev, tokenName]));
+
+    try {
+      const result = await deleteToken(user.team.name, tokenName);
+
+      if (result.error) {
+        toast.error(`Failed to delete token: ${result.error.error}`);
+      } else {
+        toast.success(`Token "${tokenName}" deleted successfully`);
+        // Refresh the tokens list
+        await refreshTokens();
+      }
+    } catch (error) {
+      console.error("Delete token error:", error);
+      toast.error("An unexpected error occurred while deleting the token");
+    } finally {
+      setDeletingTokens((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(tokenName);
+        return newSet;
+      });
     }
   };
 
@@ -398,17 +446,53 @@ export default function TokensPage() {
                         </div>
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        copyTokenName(tokenName);
-                      }}
-                      title="Copy token name"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          copyTokenName(tokenName);
+                        }}
+                        title="Copy token name"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Delete token"
+                            disabled={deletingTokens.has(tokenName)}
+                          >
+                            {deletingTokens.has(tokenName) ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Token</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete the token "
+                              {tokenName}"? This action cannot be undone and may
+                              affect applications that use this token.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteToken(tokenName)}
+                              className="bg-destructive hover:bg-destructive/90"
+                            >
+                              Delete Token
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
