@@ -59,6 +59,8 @@ import {
   FileCode,
   Users,
   Building2,
+  Key,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -68,6 +70,7 @@ import {
   type Application,
   type Team,
 } from "@/lib/api/applications/applications";
+import { getTokens, type Token } from "@/lib/api/token/token";
 import { getTeams } from "@/lib/api/teams/teams";
 import {
   updateApplicationMonitoring,
@@ -93,12 +96,15 @@ export default function ApplicationDetailPage() {
 
   const [application, setApplication] = useState<Application | null>(null);
   const [teams, setTeams] = useState<Array<Team>>([]);
+  const [tokens, setTokens] = useState<Array<Token>>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isGitSectionOpen, setIsGitSectionOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [updateApplicationError, setUpdateApplicationError] =
+    useState<string>("");
 
   // Monitoring state
   const [isUpdatingMonitoring, setIsUpdatingMonitoring] = useState(false);
@@ -115,6 +121,7 @@ export default function ApplicationDetailPage() {
     name: "",
     description: "",
     team: "",
+    tokenName: "",
     gitProvider: "",
     gitBranch: "",
     gitOwner: "",
@@ -171,6 +178,7 @@ export default function ApplicationDetailPage() {
           name: app.name,
           description: app.description,
           team: app.team?.name || "",
+          tokenName: app.token?.name || "",
           gitProvider: app.gitInformation?.provider || "",
           gitBranch: app.gitInformation?.repositoryBranch || "",
           gitOwner: app.gitInformation?.repositoryOwner || "",
@@ -194,6 +202,11 @@ export default function ApplicationDetailPage() {
               app.monitoringInformation.hasOpenClient))
         ) {
           setIsGitSectionOpen(true);
+        }
+
+        // Load tokens for current team if available
+        if (app.team?.name) {
+          loadTokensForTeam(app.team.name);
         }
       }
 
@@ -302,6 +315,8 @@ export default function ApplicationDetailPage() {
   };
 
   const handleUpdate = async () => {
+    setUpdateApplicationError("");
+
     if (!validateEditForm()) {
       return;
     }
@@ -312,6 +327,7 @@ export default function ApplicationDetailPage() {
       name: editFormData.name.trim(),
       description: editFormData.description.trim(),
       team: editFormData.team || "",
+      tokenName: editFormData.tokenName || "",
     };
 
     // Add git information if all fields are provided
@@ -339,7 +355,9 @@ export default function ApplicationDetailPage() {
     const result = await updateApplication(applicationName, requestData);
 
     if (result.error) {
-      toast.error("Failed to update application: " + result.error.error);
+      setUpdateApplicationError(
+        result.error.error || "Failed to update application",
+      );
     } else {
       toast.success("Application updated successfully!");
 
@@ -371,6 +389,20 @@ export default function ApplicationDetailPage() {
     setDeleting(false);
   };
 
+  const loadTokensForTeam = async (teamName: string) => {
+    try {
+      const tokensResult = await getTokens(teamName);
+      if (!tokensResult.error) {
+        setTokens(tokensResult.data.tokens || []);
+      } else {
+        setTokens([]);
+      }
+    } catch (error) {
+      console.error("Failed to load tokens:", error);
+      setTokens([]);
+    }
+  };
+
   const handleEditInputChange = (
     field: keyof typeof editFormData,
     value: string | boolean,
@@ -380,18 +412,29 @@ export default function ApplicationDetailPage() {
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
+    // Clear general update error when user makes changes
+    if (updateApplicationError) {
+      setUpdateApplicationError("");
+    }
+
+    // If team is changed, load tokens for that team
+    if (field === "team" && typeof value === "string" && value) {
+      loadTokensForTeam(value);
+    }
   };
 
   const handleEditDialogOpenChange = (open: boolean) => {
     setIsEditDialogOpen(open);
     if (!open) {
       setErrors({});
+      setUpdateApplicationError("");
       // Reset form to current application data
       if (application) {
         setEditFormData({
           name: application.name,
           description: application.description,
           team: application.team?.name || "",
+          tokenName: application.token?.name || "",
           gitProvider: application.gitInformation?.provider || "",
           gitBranch: application.gitInformation?.repositoryBranch || "",
           gitOwner: application.gitInformation?.repositoryOwner || "",
@@ -600,6 +643,19 @@ export default function ApplicationDetailPage() {
                           {application.gitInformation.repositoryBranch}
                         </span>
                       </div>
+                      {application.token && (
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-muted-foreground text-sm">
+                            Token:
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <Key className="h-3 w-3 text-muted-foreground" />
+                            <span className="font-semibold">
+                              {application.token.name}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -824,6 +880,14 @@ export default function ApplicationDetailPage() {
               fields.
             </DialogDescription>
           </DialogHeader>
+
+          {updateApplicationError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{updateApplicationError}</AlertDescription>
+            </Alert>
+          )}
+
           <div className="grid gap-4 py-4 max-h-[400px] overflow-y-auto">
             <div className="grid gap-2">
               <Label htmlFor="edit-name">Name</Label>
@@ -905,6 +969,33 @@ export default function ApplicationDetailPage() {
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-4 mt-2">
+                {/* Token Selection */}
+                {editFormData.team && tokens.length > 0 && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-tokenName">Token (Optional)</Label>
+                    <Select
+                      value={editFormData.tokenName}
+                      onValueChange={(value) =>
+                        handleEditInputChange(
+                          "tokenName",
+                          value === "none" ? "" : value,
+                        )
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a token (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No token</SelectItem>
+                        {tokens.map((token) => (
+                          <SelectItem key={token.name} value={token.name}>
+                            {token.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div className="grid gap-2">
                   <Label htmlFor="edit-gitProvider">Git Provider</Label>
                   <Select

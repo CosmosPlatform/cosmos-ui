@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Home, Network, Server, Shield } from "lucide-react";
+import { Home, Network, Server, Shield, Key } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { NavUser } from "@/components/sidebar/nav-user";
@@ -38,6 +38,11 @@ const items = [
     title: "Graphs",
     url: "/graphs",
     icon: Network,
+  },
+  {
+    title: "Tokens",
+    url: "/tokens",
+    icon: Key,
   },
 ];
 
