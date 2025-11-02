@@ -378,7 +378,7 @@ export function UsersManagement() {
                   : "No team assigned"}
               </p>
             </div>
-            <div>
+            <div className="space-y-3">
               <Label htmlFor="teamSelect">Assign to Team</Label>
               <Select value={selectedTeam} onValueChange={setSelectedTeam}>
                 <SelectTrigger>
