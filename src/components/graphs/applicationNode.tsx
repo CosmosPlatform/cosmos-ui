@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useContext } from "react";
 
 import {
   BaseNode,
@@ -8,6 +8,7 @@ import {
 } from "@/components/flow/base-node";
 import { Rocket } from "lucide-react";
 import { Handle, Position } from "@xyflow/react";
+import { ApplicationGraphHoverContext } from "./applicationGraphHoverContext";
 
 interface ApplicationNodeData {
   applicationName: string;
@@ -20,12 +21,16 @@ interface ApplicationNodeProps {
 }
 
 const ApplicationNode = memo(({ data }: ApplicationNodeProps) => {
+  const { hoveredNodeId, isNodeActive } = useContext(
+    ApplicationGraphHoverContext,
+  );
   const { applicationName, applicationTeam, standOut } = data;
+  const isDimmed = hoveredNodeId !== null && !isNodeActive(applicationName);
 
   if (!applicationTeam) {
     return (
       <BaseNode
-        className={`min-w-32 max-w-64 w-fit ${standOut ? "ring-2 ring-primary" : ""}`}
+        className={`min-w-32 max-w-64 w-fit ${standOut ? "ring-2 ring-primary" : ""} ${isDimmed ? "opacity-40" : ""}`}
       >
         <BaseNodeContent>
           <h3 className="text-sm font-bold text-center whitespace-nowrap px-2">
@@ -40,7 +45,7 @@ const ApplicationNode = memo(({ data }: ApplicationNodeProps) => {
 
   return (
     <BaseNode
-      className={`min-w-32 max-w-64 w-fit ${standOut ? "ring-2 ring-primary" : ""}`}
+      className={`min-w-32 max-w-64 w-fit ${standOut ? "ring-2 ring-primary" : ""} ${isDimmed ? "opacity-40" : ""}`}
     >
       <BaseNodeHeader className="border-b">
         <Rocket className="size-4" />
