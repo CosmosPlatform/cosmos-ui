@@ -290,7 +290,11 @@ export default function ApplicationGraph({
 
         const isDimmed = hoveredNodeId !== null && !connectsHovered;
 
-        const className = [edge.className, isDimmed ? "opacity-40" : null]
+        const className = [
+          edge.className,
+          "transition-opacity duration-200",
+          isDimmed ? "opacity-40" : null,
+        ]
           .filter(Boolean)
           .join(" ");
 
@@ -300,6 +304,7 @@ export default function ApplicationGraph({
           style: {
             ...edge.style,
             opacity: isDimmed ? 0.3 : 1,
+            transition: "opacity 200ms ease",
           },
         };
       }),
