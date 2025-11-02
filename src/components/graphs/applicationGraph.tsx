@@ -284,9 +284,11 @@ export default function ApplicationGraph({
   const edgesForRender = useMemo(
     () =>
       layoutedEdges.map((edge) => {
-        const isDimmed =
+        const connectsHovered =
           hoveredNodeId !== null &&
-          !(activeNodeIds?.has(edge.source) && activeNodeIds?.has(edge.target));
+          (edge.source === hoveredNodeId || edge.target === hoveredNodeId);
+
+        const isDimmed = hoveredNodeId !== null && !connectsHovered;
 
         const className = [edge.className, isDimmed ? "opacity-40" : null]
           .filter(Boolean)
@@ -301,7 +303,7 @@ export default function ApplicationGraph({
           },
         };
       }),
-    [layoutedEdges, hoveredNodeId, activeNodeIds],
+    [layoutedEdges, hoveredNodeId],
   );
 
   if (isLayouting) {
