@@ -261,20 +261,47 @@ export default function ApplicationGraph({
     return map;
   }, [layoutedEdges]);
 
+  const activeNodeIds = useMemo(() => {
+    if (!hoveredNodeId) {
+      return null;
+    }
+
+    const related = new Set<string>([hoveredNodeId]);
+    adjacencyMap.get(hoveredNodeId)?.forEach((id) => related.add(id));
+
+    return related;
+  }, [hoveredNodeId, adjacencyMap]);
+
   const hoverContextValue = useMemo(
     () => ({
       hoveredNodeId,
-      isNodeActive: (nodeId: string) => {
-        if (!hoveredNodeId) {
-          return true;
-        }
-        if (nodeId === hoveredNodeId) {
-          return true;
-        }
-        return adjacencyMap.get(hoveredNodeId)?.has(nodeId) ?? false;
-      },
+      isNodeActive: (nodeId: string) =>
+        hoveredNodeId === null ? true : (activeNodeIds?.has(nodeId) ?? false),
     }),
-    [hoveredNodeId, adjacencyMap],
+    [hoveredNodeId, activeNodeIds],
+  );
+
+  const edgesForRender = useMemo(
+    () =>
+      layoutedEdges.map((edge) => {
+        const isDimmed =
+          hoveredNodeId !== null &&
+          !(activeNodeIds?.has(edge.source) && activeNodeIds?.has(edge.target));
+
+        const className = [edge.className, isDimmed ? "opacity-40" : null]
+          .filter(Boolean)
+          .join(" ");
+
+        return {
+          ...edge,
+          className,
+          style: {
+            ...edge.style,
+            opacity: isDimmed ? 0.3 : 1,
+          },
+        };
+      }),
+    [layoutedEdges, hoveredNodeId, activeNodeIds],
   );
 
   if (isLayouting) {
@@ -294,7 +321,7 @@ export default function ApplicationGraph({
         <ReactFlow
           nodeTypes={nodeTypes}
           nodes={layoutedNodes}
-          edges={layoutedEdges}
+          edges={edgesForRender}
           onEdgeClick={handleEdgeClick}
           onNodeClick={handleNodeClick}
           onNodeMouseEnter={handleNodeMouseEnter}
