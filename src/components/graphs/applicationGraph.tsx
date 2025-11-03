@@ -1,12 +1,14 @@
 import { GetApplicationsInteractionsResponse } from "@/lib/api/monitoring/monitoring";
 import { ReactFlow, Background, Edge, Node } from "@xyflow/react";
-import { useMemo, useEffect, useState, useCallback } from "react";
+import { useMemo, useEffect, useState, useCallback, useRef } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
 import "@xyflow/react/dist/style.css";
 import ApplicationNode from "./applicationNode";
 import DependencyDetailsDrawer from "./dependencyDetailsDrawer";
 import ApplicationDrawer from "./applicationDrawer";
 import { Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { ApplicationGraphHoverContext } from "./applicationGraphHoverContext";
 
 const nodeTypes = {
   applicationNode: ApplicationNode,
@@ -93,6 +95,8 @@ export default function ApplicationGraph({
     null,
   );
   const [isOpenApiDrawerOpen, setIsOpenApiDrawerOpen] = useState(false);
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const hoverTimeoutRef = useRef<number | null>(null);
   const { theme } = useTheme();
 
   const handleEdgeClick = useCallback(
@@ -126,6 +130,33 @@ export default function ApplicationGraph({
     setIsOpenApiDrawerOpen(false);
     setSelectedApplication(null);
   }, []);
+
+  const clearHoverTimeout = useCallback(() => {
+    if (hoverTimeoutRef.current !== null) {
+      window.clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+  }, []);
+
+  const handleNodeMouseEnter = useCallback(
+    (_event: ReactMouseEvent, node: Node) => {
+      clearHoverTimeout();
+      const nodeId = node.id;
+      hoverTimeoutRef.current = window.setTimeout(() => {
+        setHoveredNodeId((current) => (current === nodeId ? current : nodeId));
+      }, 500);
+    },
+    [clearHoverTimeout],
+  );
+
+  const handleNodeMouseLeave = useCallback(
+    (_event: ReactMouseEvent, node: Node) => {
+      clearHoverTimeout();
+      const nodeId = node.id;
+      setHoveredNodeId((current) => (current === nodeId ? null : current));
+    },
+    [clearHoverTimeout],
+  );
 
   const { initialNodes, initialEdges } = useMemo(() => {
     const edges: Edge[] = [];
@@ -206,6 +237,80 @@ export default function ApplicationGraph({
     }
   }, [initialNodes, initialEdges]);
 
+  useEffect(() => {
+    return () => {
+      clearHoverTimeout();
+    };
+  }, [clearHoverTimeout]);
+
+  const adjacencyMap = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+
+    layoutedEdges.forEach(({ source, target }) => {
+      if (!map.has(source)) {
+        map.set(source, new Set());
+      }
+      if (!map.has(target)) {
+        map.set(target, new Set());
+      }
+
+      map.get(source)?.add(target);
+      map.get(target)?.add(source);
+    });
+
+    return map;
+  }, [layoutedEdges]);
+
+  const activeNodeIds = useMemo(() => {
+    if (!hoveredNodeId) {
+      return null;
+    }
+
+    const related = new Set<string>([hoveredNodeId]);
+    adjacencyMap.get(hoveredNodeId)?.forEach((id) => related.add(id));
+
+    return related;
+  }, [hoveredNodeId, adjacencyMap]);
+
+  const hoverContextValue = useMemo(
+    () => ({
+      hoveredNodeId,
+      isNodeActive: (nodeId: string) =>
+        hoveredNodeId === null ? true : (activeNodeIds?.has(nodeId) ?? false),
+    }),
+    [hoveredNodeId, activeNodeIds],
+  );
+
+  const edgesForRender = useMemo(
+    () =>
+      layoutedEdges.map((edge) => {
+        const connectsHovered =
+          hoveredNodeId !== null &&
+          (edge.source === hoveredNodeId || edge.target === hoveredNodeId);
+
+        const isDimmed = hoveredNodeId !== null && !connectsHovered;
+
+        const className = [
+          edge.className,
+          "transition-opacity duration-200",
+          isDimmed ? "opacity-40" : null,
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        return {
+          ...edge,
+          className,
+          style: {
+            ...edge.style,
+            opacity: isDimmed ? 0.3 : 1,
+            transition: "opacity 200ms ease",
+          },
+        };
+      }),
+    [layoutedEdges, hoveredNodeId],
+  );
+
   if (isLayouting) {
     return (
       <div className="w-full aspect-[16/9] min-h-96 flex items-center justify-center">
@@ -218,36 +323,40 @@ export default function ApplicationGraph({
   }
 
   return (
-    <div className="w-full aspect-[16/9] min-h-96">
-      <ReactFlow
-        nodeTypes={nodeTypes}
-        nodes={layoutedNodes}
-        edges={layoutedEdges}
-        onEdgeClick={handleEdgeClick}
-        onNodeClick={handleNodeClick}
-        fitView
-        fitViewOptions={{ padding: 0.2 }}
-        preventScrolling={false}
-        zoomOnScroll={false}
-        panOnScroll={false}
-        colorMode={theme === "dark" ? "dark" : "light"}
-      >
-        <Background />
-        <ZoomSlider position="top-left" />
-      </ReactFlow>
+    <ApplicationGraphHoverContext.Provider value={hoverContextValue}>
+      <div className="w-full aspect-[16/9] min-h-96">
+        <ReactFlow
+          nodeTypes={nodeTypes}
+          nodes={layoutedNodes}
+          edges={edgesForRender}
+          onEdgeClick={handleEdgeClick}
+          onNodeClick={handleNodeClick}
+          onNodeMouseEnter={handleNodeMouseEnter}
+          onNodeMouseLeave={handleNodeMouseLeave}
+          fitView
+          fitViewOptions={{ padding: 0.2 }}
+          preventScrolling={false}
+          zoomOnScroll={false}
+          panOnScroll={false}
+          colorMode={theme === "dark" ? "dark" : "light"}
+        >
+          <Background />
+          <ZoomSlider position="top-left" />
+        </ReactFlow>
 
-      <DependencyDetailsDrawer
-        isOpen={isDrawerOpen}
-        onClose={handleCloseDrawer}
-        dependency={selectedDependency}
-        applications={applicationData.applicationsInvolved}
-      />
+        <DependencyDetailsDrawer
+          isOpen={isDrawerOpen}
+          onClose={handleCloseDrawer}
+          dependency={selectedDependency}
+          applications={applicationData.applicationsInvolved}
+        />
 
-      <ApplicationDrawer
-        isOpen={isOpenApiDrawerOpen}
-        onClose={handleCloseOpenApiDrawer}
-        applicationName={selectedApplication}
-      />
-    </div>
+        <ApplicationDrawer
+          isOpen={isOpenApiDrawerOpen}
+          onClose={handleCloseOpenApiDrawer}
+          applicationName={selectedApplication}
+        />
+      </div>
+    </ApplicationGraphHoverContext.Provider>
   );
 }

@@ -407,7 +407,14 @@ export default function ApplicationDetailPage() {
     field: keyof typeof editFormData,
     value: string | boolean,
   ) => {
-    setEditFormData((prev) => ({ ...prev, [field]: value }));
+    setEditFormData((prev) => {
+      // If team is changing, clear the selected token
+      if (field === "team" && typeof value === "string") {
+        return { ...prev, [field]: value, tokenName: "" };
+      }
+      return { ...prev, [field]: value };
+    });
+
     // Clear error for this field when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
