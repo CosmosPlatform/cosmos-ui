@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -182,7 +183,11 @@ export default function HomePage() {
             {applications.length > 0 ? (
               <div className="space-y-3 max-h-60 overflow-y-auto">
                 {applications.map((app) => (
-                  <div key={app.name} className="border rounded-lg p-3">
+                  <Link
+                    key={app.name}
+                    href={`/applications/${app.name}`}
+                    className="block border rounded-lg p-3 hover:bg-accent transition-colors cursor-pointer"
+                  >
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium">{app.name}</h4>
                       {app.team && (
@@ -194,7 +199,7 @@ export default function HomePage() {
                     <p className="text-sm text-muted-foreground mt-1">
                       {app.description}
                     </p>
-                  </div>
+                  </Link>
                 ))}
               </div>
             ) : (
