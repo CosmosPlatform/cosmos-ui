@@ -68,3 +68,9 @@ export async function updateToken(
     request,
   );
 }
+
+// -----------------------------------------------------------------
+
+export async function getAllTokens(): Promise<ApiResult<GetTokensResponse>> {
+  return sendRequestWithAuth<never, GetTokensResponse>("GET", `/tokens`);
+}
