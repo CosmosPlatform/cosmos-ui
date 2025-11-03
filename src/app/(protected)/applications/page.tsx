@@ -44,7 +44,6 @@ import {
   AlertCircle,
   Monitor,
   Users,
-  KeyRound,
   BookOpen,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -736,15 +735,6 @@ export default function Page() {
                     >
                       <Users className="h-3 w-3" />
                       {application.team.name}
-                    </Badge>
-                  )}
-                  {application.token && (
-                    <Badge
-                      variant="outline"
-                      className="flex items-center gap-1 rounded-full px-3 py-1"
-                    >
-                      <KeyRound className="h-3 w-3" />
-                      {application.token.name}
                     </Badge>
                   )}
                   {application.monitoringInformation?.hasOpenAPI && (
