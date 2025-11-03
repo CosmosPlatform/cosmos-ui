@@ -48,6 +48,7 @@ import {
 import { getOwnUser } from "@/lib/api/users/users";
 import {
   getTokens,
+  getAllTokens,
   createToken,
   deleteToken,
   updateToken,
@@ -55,7 +56,15 @@ import {
   type CreateTokenRequest,
   type UpdateTokenRequest,
 } from "@/lib/api/token/token";
+import { getTeams } from "@/lib/api/teams/teams";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type UserData = {
   username: string;
@@ -72,6 +81,10 @@ export default function TokensPage() {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [availableTeams, setAvailableTeams] = useState<
+    Array<{ name: string; description: string }>
+  >([]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -90,6 +103,7 @@ export default function TokensPage() {
   const [formData, setFormData] = useState({
     name: "",
     value: "",
+    team: "", // For admin use
   });
 
   // Edit form state
@@ -113,15 +127,40 @@ export default function TokensPage() {
         }
 
         setUser(userResult.data.user);
+        const userIsAdmin = userResult.data.user.role === "admin";
+        setIsAdmin(userIsAdmin);
 
-        // If user has a team, fetch tokens for that team
-        if (userResult.data.user.team) {
-          const tokensResult = await getTokens(userResult.data.user.team.name);
+        if (userIsAdmin) {
+          // Admin: fetch all tokens and all teams
+          const [tokensResult, teamsResult] = await Promise.all([
+            getAllTokens(),
+            getTeams(),
+          ]);
+
           if (tokensResult.error) {
             setError("Failed to fetch tokens");
           } else {
-            console.log("Loaded tokens:", tokensResult.data.tokens);
+            console.log("Loaded all tokens:", tokensResult.data.tokens);
             setTokens(tokensResult.data.tokens || []);
+          }
+
+          if (teamsResult.error) {
+            setError("Failed to fetch teams");
+          } else {
+            setAvailableTeams(teamsResult.data.teams || []);
+          }
+        } else {
+          // Regular user: fetch tokens for their team
+          if (userResult.data.user.team) {
+            const tokensResult = await getTokens(
+              userResult.data.user.team.name,
+            );
+            if (tokensResult.error) {
+              setError("Failed to fetch tokens");
+            } else {
+              console.log("Loaded tokens:", tokensResult.data.tokens);
+              setTokens(tokensResult.data.tokens || []);
+            }
           }
         }
       } catch (err) {
@@ -136,7 +175,12 @@ export default function TokensPage() {
   }, []);
 
   const refreshTokens = async () => {
-    if (user?.team) {
+    if (isAdmin) {
+      const tokensResult = await getAllTokens();
+      if (!tokensResult.error) {
+        setTokens(tokensResult.data.tokens || []);
+      }
+    } else if (user?.team) {
       const tokensResult = await getTokens(user.team.name);
       if (!tokensResult.error) {
         setTokens(tokensResult.data.tokens || []);
@@ -167,6 +211,10 @@ export default function TokensPage() {
     if (!formData.value.trim()) {
       newErrors.value = "Token value is required";
     }
+    // For admin, team selection is required
+    if (isAdmin && !formData.team.trim()) {
+      newErrors.team = "Team selection is required";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -175,7 +223,15 @@ export default function TokensPage() {
   const handleCreateToken = async () => {
     setCreateTokenError("");
 
-    if (!validateForm() || !user?.team) {
+    if (!validateForm()) {
+      return;
+    }
+
+    // For admin, use selected team; for regular user, use their team
+    const targetTeam = isAdmin ? formData.team : user?.team?.name;
+
+    if (!targetTeam) {
+      setCreateTokenError("No team available for token creation");
       return;
     }
 
@@ -186,7 +242,7 @@ export default function TokensPage() {
       value: formData.value.trim(),
     };
 
-    const result = await createToken(user.team.name, requestData);
+    const result = await createToken(targetTeam, requestData);
 
     if (result.error) {
       setCreateTokenError(result.error.error || "Failed to create token");
@@ -216,6 +272,7 @@ export default function TokensPage() {
     setFormData({
       name: "",
       value: "",
+      team: "",
     });
     setErrors({});
     setCreateTokenError("");
@@ -229,12 +286,24 @@ export default function TokensPage() {
   };
 
   const handleDeleteToken = async (tokenName: string) => {
-    if (!user?.team) return;
+    // Find the team for this token
+    let teamName: string | undefined;
+
+    if (isAdmin) {
+      // For admin, find the token's team from the tokens list
+      const token = tokens.find((t) => t.name === tokenName);
+      teamName = token?.team;
+    } else {
+      // For regular user, use their team
+      teamName = user?.team?.name;
+    }
+
+    if (!teamName) return;
 
     setDeletingTokens((prev) => new Set([...prev, tokenName]));
 
     try {
-      const result = await deleteToken(user.team.name, tokenName);
+      const result = await deleteToken(teamName, tokenName);
 
       if (result.error) {
         toast.error(`Failed to delete token: ${result.error.error}`);
@@ -390,7 +459,7 @@ export default function TokensPage() {
     );
   }
 
-  if (!user?.team) {
+  if (!user?.team && !isAdmin) {
     return (
       <div className="container mx-auto p-6">
         <Alert>
@@ -403,6 +472,20 @@ export default function TokensPage() {
     );
   }
 
+  // Group tokens by team for admin view
+  const tokensByTeam = isAdmin
+    ? tokens.reduce(
+        (acc, token) => {
+          if (!acc[token.team]) {
+            acc[token.team] = [];
+          }
+          acc[token.team].push(token);
+          return acc;
+        },
+        {} as Record<string, Token[]>,
+      )
+    : {};
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between mb-6">
@@ -411,7 +494,9 @@ export default function TokensPage() {
           <div>
             <h1 className="text-3xl font-bold">Tokens</h1>
             <p className="text-muted-foreground">
-              Manage tokens for team "{user.team.name}"
+              {isAdmin
+                ? "Manage tokens for all teams"
+                : `Manage tokens for team "${user?.team?.name}"`}
             </p>
           </div>
         </div>
@@ -426,8 +511,9 @@ export default function TokensPage() {
             <DialogHeader>
               <DialogTitle>Create New Token</DialogTitle>
               <DialogDescription>
-                Create a new token for your team. Provide a name and value for
-                the token.
+                {isAdmin
+                  ? "Create a new token for a team. Select a team and provide a name and value for the token."
+                  : "Create a new token for your team. Provide a name and value for the token."}
               </DialogDescription>
             </DialogHeader>
 
@@ -439,6 +525,33 @@ export default function TokensPage() {
             )}
 
             <div className="grid gap-4 py-4">
+              {isAdmin && (
+                <div className="grid gap-2">
+                  <Label htmlFor="team">Team</Label>
+                  <Select
+                    value={formData.team}
+                    onValueChange={(value) => handleInputChange("team", value)}
+                  >
+                    <SelectTrigger
+                      className={
+                        errors.team ? "border-red-500 focus:border-red-500" : ""
+                      }
+                    >
+                      <SelectValue placeholder="Select a team" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableTeams.map((team) => (
+                        <SelectItem key={team.name} value={team.name}>
+                          {team.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.team && (
+                    <p className="text-sm text-red-500">{errors.team}</p>
+                  )}
+                </div>
+              )}
               <div className="grid gap-2">
                 <Label htmlFor="name">Token Name</Label>
                 <Input
@@ -588,8 +701,9 @@ export default function TokensPage() {
               </div>
               <h3 className="text-xl font-semibold mb-3">No tokens found</h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Your team doesn't have any repository tokens yet. Create your
-                first token to enable access to private repositories.
+                {isAdmin
+                  ? "No tokens have been created yet. Create your first token to enable access to private repositories."
+                  : "Your team doesn't have any repository tokens yet. Create your first token to enable access to private repositories."}
               </p>
               <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
                 <DialogTrigger asChild>
@@ -602,7 +716,123 @@ export default function TokensPage() {
             </div>
           </CardContent>
         </Card>
+      ) : isAdmin ? (
+        // Admin view: Group tokens by team
+        <div className="space-y-8">
+          {Object.entries(tokensByTeam).map(([teamName, teamTokens]) => (
+            <div key={teamName} className="space-y-4">
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-semibold">{teamName}</h2>
+                <Badge variant="outline">
+                  {teamTokens.length} token{teamTokens.length !== 1 ? "s" : ""}
+                </Badge>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {teamTokens.map((token) => {
+                  const tokenName = token.name;
+                  const tokenTeam = token.team;
+
+                  return (
+                    <Card
+                      key={`${teamName}-${tokenName}`}
+                      className="hover:shadow-md transition-shadow group"
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3">
+                              <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                                <Shield className="h-5 w-5 text-primary" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <h3 className="text-2xl font-semibold truncate group-hover:text-primary transition-colors">
+                                  {tokenName}
+                                </h3>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-xs"
+                                  >
+                                    {tokenTeam}
+                                  </Badge>
+                                  <span className="text-xs text-muted-foreground">
+                                    Repository token
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                copyTokenName(tokenName);
+                              }}
+                              title="Copy token name"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                handleEditToken(tokenName);
+                              }}
+                              title="Edit token"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  title="Delete token"
+                                  disabled={deletingTokens.has(tokenName)}
+                                >
+                                  {deletingTokens.has(tokenName) ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Delete Token
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete the token "
+                                    {tokenName}"? This action cannot be undone
+                                    and may affect applications that use this
+                                    token.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteToken(tokenName)}
+                                    className="bg-destructive hover:bg-destructive/90"
+                                  >
+                                    Delete Token
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
+        // Regular user view: Show tokens in grid
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {tokens.map((token) => {
             const tokenName = token.name;
@@ -716,10 +946,13 @@ export default function TokensPage() {
                 <li>
                   • Tokens should have <strong>read permissions</strong>
                 </li>
-                <li>
-                  • Each token belongs to team:{" "}
-                  <strong>{user.team.name}</strong>
-                </li>
+                {!isAdmin && user?.team && (
+                  <li>
+                    • Each token belongs to team:{" "}
+                    <strong>{user.team.name}</strong>
+                  </li>
+                )}
+                {isAdmin && <li>• Tokens belong to their respective teams</li>}
                 <li>• Used for accessing private repositories</li>
               </ul>
             </div>
