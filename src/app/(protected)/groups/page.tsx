@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -20,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Loader2, AlertCircle, Server } from "lucide-react";
+import { Plus, Loader2, AlertCircle, Server, ChevronRight } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -38,6 +40,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Page() {
+  const router = useRouter();
   const [groups, setGroups] = useState<Array<GroupReduced>>([]);
   const [applications, setApplications] = useState<Array<Application>>([]);
   const [loading, setLoading] = useState(true);
@@ -180,6 +183,10 @@ export default function Page() {
     if (!open) {
       resetForm();
     }
+  };
+
+  const handleGroupClick = (groupName: string) => {
+    router.push(`/groups/${encodeURIComponent(groupName)}`);
   };
 
   if (loading) {
@@ -367,7 +374,8 @@ export default function Page() {
           {groups.map((group) => (
             <Card
               key={group.name}
-              className="group relative overflow-hidden border border-border/60 bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+              className="group relative overflow-hidden border border-border/60 bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer"
+              onClick={() => handleGroupClick(group.name)}
             >
               <span className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary/60 via-primary/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               <CardHeader className="relative space-y-4">
@@ -381,6 +389,10 @@ export default function Page() {
                   {group.description || "No description provided"}
                 </CardDescription>
               </CardHeader>
+              <CardFooter className="relative flex items-center justify-between border-t border-border/60 px-6 py-4 text-xs text-muted-foreground transition-colors duration-300 group-hover:text-foreground/80">
+                <span>Click to view details</span>
+                <ChevronRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </CardFooter>
             </Card>
           ))}
         </div>
