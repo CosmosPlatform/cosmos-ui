@@ -10,9 +10,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, Loader2, Server, Network } from "lucide-react";
+import { ArrowLeft, Loader2, Server, Network, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { getGroup, type Group } from "@/lib/api/groups/groups";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { getGroup, deleteGroup, type Group } from "@/lib/api/groups/groups";
 import {
   GetGroupApplicationsInteractions,
   type GetApplicationsInteractionsResponse,
@@ -30,6 +41,7 @@ export default function GroupDetailPage() {
     useState<GetApplicationsInteractionsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingInteractions, setLoadingInteractions] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -86,6 +98,22 @@ export default function GroupDetailPage() {
     router.push("/groups");
   };
 
+  const handleDelete = async () => {
+    if (!groupName) return;
+
+    setDeleting(true);
+
+    const result = await deleteGroup(decodeURIComponent(groupName));
+    if (result.error) {
+      toast.error("Failed to delete group: " + result.error.error);
+    } else {
+      toast.success("Group deleted successfully");
+      router.push("/groups");
+    }
+
+    setDeleting(false);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -121,6 +149,41 @@ export default function GroupDetailPage() {
           <h1 className="text-3xl font-bold tracking-tight">{group.name}</h1>
           <p className="text-muted-foreground mt-1">{group.description}</p>
         </div>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" size="sm" disabled={deleting}>
+              {deleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Group
+                </>
+              )}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the
+                group "{group.name}" and remove it from the system.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       <div className="grid gap-6">

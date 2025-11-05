@@ -49,3 +49,9 @@ export async function getGroup(
 ): Promise<ApiResult<GetGroupResponse>> {
   return sendRequestWithAuth<never, GetGroupResponse>("GET", `/groups/${name}`);
 }
+
+// -----------------------------------------------------------------
+
+export async function deleteGroup(name: string): Promise<ApiResult<null>> {
+  return sendRequestWithAuth<never, null>("DELETE", `/groups/${name}`);
+}
