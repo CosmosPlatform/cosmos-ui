@@ -9,27 +9,16 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
-import {
-  ArrowLeft,
-  Loader2,
-  Server,
-  ChevronRight,
-  Users,
-  GitBranch,
-  Monitor,
-  BookOpen,
-  Network,
-} from "lucide-react";
+import { ArrowLeft, Loader2, Server, Network } from "lucide-react";
 import { toast } from "sonner";
 import { getGroup, type Group } from "@/lib/api/groups/groups";
 import {
   GetGroupApplicationsInteractions,
   type GetApplicationsInteractionsResponse,
 } from "@/lib/api/monitoring/monitoring";
-import { Badge } from "@/components/ui/badge";
 import ApplicationGraph from "@/components/graphs/applicationGraph";
+import { AppCard } from "@/components/cards/appCard";
 
 export default function GroupDetailPage() {
   const router = useRouter();
@@ -205,75 +194,11 @@ export default function GroupDetailPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {group.members.map((application) => (
-                  <Card
+                  <AppCard
                     key={application.name}
-                    className="group relative overflow-hidden border border-border/60 bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer"
-                    onClick={() => handleApplicationClick(application.name)}
-                  >
-                    <span className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary/60 via-primary/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                    <CardHeader className="relative space-y-4">
-                      <CardTitle className="flex items-start justify-between gap-3 text-lg font-semibold tracking-tight text-foreground">
-                        <span className="transition-colors duration-300 group-hover:text-primary">
-                          {application.name}
-                        </span>
-                        {application.gitInformation && (
-                          <GitBranch className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        )}
-                      </CardTitle>
-                      <CardDescription className="line-clamp-2 text-sm text-muted-foreground/90">
-                        {application.description || "No description provided"}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="relative space-y-2 text-sm text-muted-foreground">
-                      <div className="flex flex-wrap gap-2">
-                        {application.team && (
-                          <Badge
-                            variant="outline"
-                            className="flex items-center gap-1"
-                          >
-                            <Users className="h-3 w-3" />
-                            {application.team.name}
-                          </Badge>
-                        )}
-                        {application.monitoringInformation?.hasOpenAPI && (
-                          <Badge
-                            variant="outline"
-                            className="flex items-center gap-1"
-                          >
-                            <Monitor className="h-3 w-3" />
-                            OpenAPI
-                          </Badge>
-                        )}
-                        {application.monitoringInformation?.hasOpenClient && (
-                          <Badge
-                            variant="outline"
-                            className="flex items-center gap-1"
-                          >
-                            <BookOpen className="h-3 w-3" />
-                            OpenClient
-                          </Badge>
-                        )}
-                      </div>
-
-                      {application.gitInformation && (
-                        <div className="rounded-md border border-dashed border-border/60 bg-muted/40 p-2 text-xs">
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium">
-                              {application.gitInformation.repositoryOwner}/
-                              {application.gitInformation.repositoryName}
-                            </span>
-                          </div>
-                          <div className="text-muted-foreground">
-                            {application.gitInformation.repositoryBranch}
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                    <CardFooter className="relative flex items-center justify-between border-t border-border/60 px-6 py-3 text-xs text-muted-foreground transition-colors duration-300 group-hover:text-foreground/80">
-                      <span>Click to view details</span>
-                      <ChevronRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                    </CardFooter>
-                  </Card>
+                    application={application}
+                    onClick={handleApplicationClick}
+                  />
                 ))}
               </div>
             )}
