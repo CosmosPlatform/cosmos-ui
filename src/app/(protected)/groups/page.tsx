@@ -278,7 +278,8 @@ export default function Page() {
                         {applications.map((app) => (
                           <div
                             key={app.name}
-                            className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                            className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
+                            onClick={() => toggleApplicationSelection(app.name)}
                           >
                             <Checkbox
                               id={`app-${app.name}`}
@@ -288,12 +289,12 @@ export default function Page() {
                               onCheckedChange={() =>
                                 toggleApplicationSelection(app.name)
                               }
-                              className="mt-1"
+                              className="mt-1 pointer-events-none"
                             />
                             <div className="flex-1 space-y-1">
                               <Label
                                 htmlFor={`app-${app.name}`}
-                                className="font-medium cursor-pointer"
+                                className="font-medium cursor-pointer pointer-events-none"
                               >
                                 {app.name}
                               </Label>
