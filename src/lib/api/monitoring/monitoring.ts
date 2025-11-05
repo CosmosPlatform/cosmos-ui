@@ -156,3 +156,14 @@ export async function updateSentinelSettings(
     settings,
   );
 }
+
+// -----------------------------------------------------------------
+
+export async function GetGroupApplicationsInteractions(
+  groupName: string,
+): Promise<ApiResult<GetApplicationsInteractionsResponse>> {
+  return sendRequestWithAuth<never, GetApplicationsInteractionsResponse>(
+    "GET",
+    `/monitoring/interactions/group/${groupName}`,
+  );
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Home, Network, Server, Shield, Key } from "lucide-react";
+import { Home, Network, Server, Shield, Key, Layers } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { NavUser } from "@/components/sidebar/nav-user";
@@ -33,6 +33,11 @@ const items = [
     title: "Applications",
     url: "/applications",
     icon: Server,
+  },
+  {
+    title: "Groups",
+    url: "/groups",
+    icon: Layers,
   },
   {
     title: "Graphs",
