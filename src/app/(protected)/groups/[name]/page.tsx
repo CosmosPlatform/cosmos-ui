@@ -220,14 +220,23 @@ export default function GroupDetailPage() {
     } else {
       toast.success("Group updated successfully!");
 
-      // Reload group data
-      const groupResult = await getGroup(decodeURIComponent(groupName));
-      if (!groupResult.error && groupResult.data?.group) {
-        setGroup(groupResult.data.group);
+      // If the name changed, navigate to the new URL
+      const newName = editFormData.name.trim();
+      if (group && newName !== group.name) {
+        router.push(`/groups/${encodeURIComponent(newName)}`);
+      } else {
+        // Reload group data with the same name
+        const groupResult = await getGroup(decodeURIComponent(groupName));
+        if (!groupResult.error && groupResult.data?.group) {
+          setGroup(groupResult.data.group);
+        }
+        // Reload interactions graph
+        loadInteractions();
       }
 
       setIsEditDialogOpen(false);
       setErrors({});
+      setUpdateGroupError("");
     }
 
     setIsUpdating(false);
