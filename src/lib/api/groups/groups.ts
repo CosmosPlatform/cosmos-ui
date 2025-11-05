@@ -55,3 +55,22 @@ export async function getGroup(
 export async function deleteGroup(name: string): Promise<ApiResult<null>> {
   return sendRequestWithAuth<never, null>("DELETE", `/groups/${name}`);
 }
+
+// -----------------------------------------------------------------
+
+export type UpdateGroupRequest = {
+  name?: string;
+  description?: string;
+  members?: string[];
+};
+
+export async function updateGroup(
+  groupName: string,
+  request: UpdateGroupRequest,
+): Promise<ApiResult<null>> {
+  return sendRequestWithAuth<UpdateGroupRequest, null>(
+    "PUT",
+    `/groups/${groupName}`,
+    request,
+  );
+}

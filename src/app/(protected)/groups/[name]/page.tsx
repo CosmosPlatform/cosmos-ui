@@ -10,8 +10,32 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, Loader2, Server, Network, Trash2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import {
+  ArrowLeft,
+  Loader2,
+  Server,
+  Network,
+  Trash2,
+  Pencil,
+  AlertCircle,
+} from "lucide-react";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,11 +47,20 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { getGroup, deleteGroup, type Group } from "@/lib/api/groups/groups";
+import {
+  getGroup,
+  deleteGroup,
+  updateGroup,
+  type Group,
+} from "@/lib/api/groups/groups";
 import {
   GetGroupApplicationsInteractions,
   type GetApplicationsInteractionsResponse,
 } from "@/lib/api/monitoring/monitoring";
+import {
+  getApplicationsWithFilter,
+  type Application,
+} from "@/lib/api/applications/applications";
 import ApplicationGraph from "@/components/graphs/applicationGraph";
 import { AppCard } from "@/components/cards/appCard";
 
@@ -42,6 +75,18 @@ export default function GroupDetailPage() {
   const [loading, setLoading] = useState(true);
   const [loadingInteractions, setLoadingInteractions] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [applications, setApplications] = useState<Array<Application>>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [updateGroupError, setUpdateGroupError] = useState<string>("");
+
+  // Form state for editing
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    description: "",
+    selectedApplications: [] as string[],
+  });
 
   useEffect(() => {
     const loadData = async () => {
@@ -59,7 +104,26 @@ export default function GroupDetailPage() {
         return;
       }
 
-      setGroup(groupResult.data?.group || null);
+      const groupData = groupResult.data?.group || null;
+      setGroup(groupData);
+
+      // Populate edit form with current group data
+      if (groupData) {
+        setEditFormData({
+          name: groupData.name,
+          description: groupData.description,
+          selectedApplications: groupData.members.map((app) => app.name),
+        });
+      }
+
+      // Load all applications for the edit dialog
+      const appsResult = await getApplicationsWithFilter("");
+      if (appsResult.error) {
+        toast.error("Failed to load applications: " + appsResult.error.error);
+        setApplications([]);
+      } else {
+        setApplications(appsResult.data?.applications || []);
+      }
 
       // Load interactions
       await loadInteractions();
@@ -114,6 +178,108 @@ export default function GroupDetailPage() {
     setDeleting(false);
   };
 
+  const validateEditForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!editFormData.name.trim()) {
+      newErrors.name = "Group name is required";
+    }
+    if (!editFormData.description.trim()) {
+      newErrors.description = "Description is required";
+    }
+    if (editFormData.selectedApplications.length === 0) {
+      newErrors.applications = "At least one application must be selected";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleUpdate = async () => {
+    setUpdateGroupError("");
+
+    if (!validateEditForm()) {
+      return;
+    }
+
+    setIsUpdating(true);
+
+    const requestData = {
+      name: editFormData.name.trim(),
+      description: editFormData.description.trim(),
+      members: editFormData.selectedApplications,
+    };
+
+    const result = await updateGroup(
+      decodeURIComponent(groupName),
+      requestData,
+    );
+
+    if (result.error) {
+      setUpdateGroupError(result.error.error || "Failed to update group");
+    } else {
+      toast.success("Group updated successfully!");
+
+      // Reload group data
+      const groupResult = await getGroup(decodeURIComponent(groupName));
+      if (!groupResult.error && groupResult.data?.group) {
+        setGroup(groupResult.data.group);
+      }
+
+      setIsEditDialogOpen(false);
+      setErrors({});
+    }
+
+    setIsUpdating(false);
+  };
+
+  const handleEditInputChange = (
+    field: keyof typeof editFormData,
+    value: any,
+  ) => {
+    setEditFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+    if (updateGroupError) {
+      setUpdateGroupError("");
+    }
+  };
+
+  const toggleApplicationSelection = (applicationName: string) => {
+    setEditFormData((prev) => {
+      const isSelected = prev.selectedApplications.includes(applicationName);
+      const newSelected = isSelected
+        ? prev.selectedApplications.filter((name) => name !== applicationName)
+        : [...prev.selectedApplications, applicationName];
+
+      return {
+        ...prev,
+        selectedApplications: newSelected,
+      };
+    });
+
+    if (errors.applications) {
+      setErrors((prev) => ({ ...prev, applications: "" }));
+    }
+  };
+
+  const handleEditDialogOpenChange = (open: boolean) => {
+    setIsEditDialogOpen(open);
+    if (!open) {
+      setErrors({});
+      setUpdateGroupError("");
+      // Reset form to current group data
+      if (group) {
+        setEditFormData({
+          name: group.name,
+          description: group.description,
+          selectedApplications: group.members.map((app) => app.name),
+        });
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -149,41 +315,196 @@ export default function GroupDetailPage() {
           <h1 className="text-3xl font-bold tracking-tight">{group.name}</h1>
           <p className="text-muted-foreground mt-1">{group.description}</p>
         </div>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive" size="sm" disabled={deleting}>
-              {deleting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Deleting...
-                </>
-              ) : (
-                <>
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Group
-                </>
+        <div className="flex items-center gap-2">
+          <Dialog
+            open={isEditDialogOpen}
+            onOpenChange={handleEditDialogOpenChange}
+          >
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle>Edit Group</DialogTitle>
+                <DialogDescription>
+                  Update the group information and manage its applications.
+                </DialogDescription>
+              </DialogHeader>
+
+              {updateGroupError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{updateGroupError}</AlertDescription>
+                </Alert>
               )}
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the
-                group "{group.name}" and remove it from the system.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleDelete}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-name">Name</Label>
+                  <Input
+                    id="edit-name"
+                    value={editFormData.name}
+                    onChange={(e) =>
+                      handleEditInputChange("name", e.target.value)
+                    }
+                    placeholder="Enter group name"
+                    className={
+                      errors.name ? "border-red-500 focus:border-red-500" : ""
+                    }
+                  />
+                  {errors.name && (
+                    <p className="text-sm text-red-500">{errors.name}</p>
+                  )}
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-description">Description</Label>
+                  <Textarea
+                    id="edit-description"
+                    value={editFormData.description}
+                    onChange={(e) =>
+                      handleEditInputChange("description", e.target.value)
+                    }
+                    placeholder="Enter group description"
+                    rows={3}
+                    className={
+                      errors.description
+                        ? "border-red-500 focus:border-red-500"
+                        : ""
+                    }
+                  />
+                  {errors.description && (
+                    <p className="text-sm text-red-500">{errors.description}</p>
+                  )}
+                </div>
+
+                <div className="grid gap-2">
+                  <Label>Applications</Label>
+                  <div
+                    className={`border rounded-md ${
+                      errors.applications ? "border-red-500" : ""
+                    }`}
+                  >
+                    <ScrollArea className="h-[300px] p-4">
+                      {applications.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          No applications available
+                        </p>
+                      ) : (
+                        <div className="space-y-3">
+                          {applications.map((app) => (
+                            <div
+                              key={app.name}
+                              className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
+                              onClick={() =>
+                                toggleApplicationSelection(app.name)
+                              }
+                            >
+                              <Checkbox
+                                id={`edit-app-${app.name}`}
+                                checked={editFormData.selectedApplications.includes(
+                                  app.name,
+                                )}
+                                onCheckedChange={() =>
+                                  toggleApplicationSelection(app.name)
+                                }
+                                className="mt-1 pointer-events-none"
+                              />
+                              <div className="flex-1 space-y-1">
+                                <Label
+                                  htmlFor={`edit-app-${app.name}`}
+                                  className="font-medium cursor-pointer pointer-events-none"
+                                >
+                                  {app.name}
+                                </Label>
+                                <p className="text-sm text-muted-foreground">
+                                  {app.description || "No description provided"}
+                                </p>
+                                {app.team && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {app.team.name}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </ScrollArea>
+                  </div>
+                  {errors.applications && (
+                    <p className="text-sm text-red-500">
+                      {errors.applications}
+                    </p>
+                  )}
+                  <p className="text-sm text-muted-foreground">
+                    {editFormData.selectedApplications.length} application(s)
+                    selected
+                  </p>
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleEditDialogOpenChange(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleUpdate}
+                  disabled={isUpdating}
+                >
+                  {isUpdating && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Update Group
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" disabled={deleting}>
+                {deleting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Group
+                  </>
+                )}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the
+                  group "{group.name}" and remove it from the system.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
 
       <div className="grid gap-6">
