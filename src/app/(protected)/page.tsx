@@ -14,7 +14,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Users,
-  Rocket,
+  Box,
+  Boxes,
   AlertCircle,
   Mail,
   Shield,
@@ -160,7 +161,7 @@ export default function HomePage() {
           <div className="flex flex-wrap gap-6 pt-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10">
-                <Rocket className="h-5 w-5 text-primary" />
+                <Boxes className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{applications.length}</p>
@@ -228,7 +229,7 @@ export default function HomePage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="p-2 rounded-lg bg-primary/10">
-                  <Rocket className="h-5 w-5 text-primary" />
+                  <Boxes className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <CardTitle>Team Applications</CardTitle>
@@ -259,7 +260,7 @@ export default function HomePage() {
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <div className="p-1.5 rounded-md bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                          <Rocket className="h-4 w-4 text-primary" />
+                          <Box className="h-4 w-4 text-primary" />
                         </div>
                         <h4 className="font-semibold group-hover:text-primary transition-colors">
                           {app.name}
@@ -283,7 +284,7 @@ export default function HomePage() {
             ) : (
               <div className="text-center text-muted-foreground py-12">
                 <div className="p-6 rounded-full bg-muted/50 w-fit mx-auto mb-4">
-                  <Rocket className="h-16 w-16 opacity-50" />
+                  <Boxes className="h-16 w-16 opacity-50" />
                 </div>
                 <p className="font-semibold text-lg mb-2">
                   No applications yet

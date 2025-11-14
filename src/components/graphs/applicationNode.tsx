@@ -6,7 +6,7 @@ import {
   BaseNodeHeader,
   BaseNodeHeaderTitle,
 } from "@/components/flow/base-node";
-import { Rocket } from "lucide-react";
+import { Users } from "lucide-react";
 import { Handle, Position } from "@xyflow/react";
 import { ApplicationGraphHoverContext } from "./applicationGraphHoverContext";
 
@@ -47,10 +47,10 @@ const ApplicationNode = memo(({ data }: ApplicationNodeProps) => {
     <BaseNode
       className={`min-w-32 max-w-64 w-fit transition-opacity duration-200 ${standOut ? "ring-2 ring-primary" : ""} ${isDimmed ? "opacity-40" : ""}`}
     >
-      <BaseNodeHeader className="border-b">
-        <Rocket className="size-4" />
-        <BaseNodeHeaderTitle className="text-xs">
-          Team: {applicationTeam}
+      <BaseNodeHeader className="border-b flex items-center justify-center space-x-1">
+        <Users className="size-4" />
+        <BaseNodeHeaderTitle className="text-xs flex-none">
+          {applicationTeam}
         </BaseNodeHeaderTitle>
       </BaseNodeHeader>
       <BaseNodeContent>

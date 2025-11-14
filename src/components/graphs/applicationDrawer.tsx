@@ -15,7 +15,7 @@ import {
   getCompleteApplicationMonitoring,
   GetCompleteApplicationMonitoringResponse,
 } from "@/lib/api/monitoring/monitoring";
-import { Loader2, FileCode, Users, Rocket } from "lucide-react";
+import { Loader2, FileCode, Users, Box } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ApplicationDrawerProps {
@@ -74,7 +74,7 @@ export default function ApplicationDrawer({
       <SheetContent className="w-[600px] sm:w-[800px] sm:max-w-[90vw] overflow-y-auto px-8">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
-            <Rocket className="h-5 w-5" />
+            <Box className="h-5 w-5" />
             {monitoringData?.application.name ||
               applicationName ||
               "Application"}

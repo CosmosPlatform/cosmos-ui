@@ -18,11 +18,11 @@ export default function BackofficePage() {
       <Tabs defaultValue="users" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="users" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
+            <Users2 className="h-4 w-4" />
             Users
           </TabsTrigger>
           <TabsTrigger value="teams" className="flex items-center gap-2">
-            <Users2 className="h-4 w-4" />
+            <Users className="h-4 w-4" />
             Teams
           </TabsTrigger>
           <TabsTrigger value="sentinel" className="flex items-center gap-2">

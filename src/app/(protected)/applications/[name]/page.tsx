@@ -58,7 +58,6 @@ import {
   Monitor,
   FileCode,
   Users,
-  Building2,
   Key,
   AlertCircle,
 } from "lucide-react";
@@ -573,7 +572,7 @@ export default function ApplicationDetailPage() {
               <div className="flex-1 min-w-[300px] flex flex-col">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-primary/10 rounded-lg">
-                    <Building2 className="h-4 w-4 text-primary" />
+                    <Users className="h-4 w-4 text-primary" />
                   </div>
                   <h3 className="font-semibold text-lg">Team Information</h3>
                 </div>
