@@ -2,34 +2,52 @@
 
 UI of the Cosmos Platform
 
-Run with `bun dev`
+## Run
 
-# Dependencies
+Run locally with `bun run dev`.
 
-- `Zod`: Used validate types.
+The application needs the environment variable `NEXT_PUBLIC_SERVER_URL` to be present to run. It should contain the address of the server.
 
-# Structure
+## Structure
 
-cosmos-ui/
+```
+cosmos-ui
+├── src
+│   ├── app                       // Next.js app directory
+│   │   ├── (protected)           // Protected routes (requires auth)
+│   │   │   ├── (admin)           // Admin-only routes
+│   │   │   │   └── admin         // Backoffice pages
+│   │   │   ├── applications      // Applications management
+│   │   │   │   └── [name]        // Dynamic application detail page
+│   │   │   ├── graphs            // Graph visualization pages
+│   │   │   ├── groups            // Groups management
+│   │   │   │   └── [name]        // Dynamic group detail page
+│   │   │   └── tokens            // Token management
+│   │   └── (public)              // Public routes (no auth required)
+│   │       └── login             // Login page
+│   │
+│   ├── components                // React components
+│   │   ├── auth                  // Authentication components
+│   │   ├── backoffice            // Admin/backoffice components
+│   │   ├── cards                 // Card components
+│   │   ├── flow                  // Flow diagram components
+│   │   ├── graphs                // Graph visualization components
+│   │   ├── sidebar               // Sidebar and navigation components
+│   │   ├── swagger               // Swagger/API documentation components
+│   │   └── ui                    // Reusable UI components (shadcn/ui)
+│   │
+│   ├── lib                       // Shared utilities and logic
+│   │   └── api                   // API client and fetch functions
+│   │       ├── applications      // Application API endpoints
+│   │       ├── auth              // Authentication API
+│   │       ├── groups            // Groups API
+│   │       ├── monitoring        // Monitoring API
+│   │       ├── teams             // Teams API
+│   │       ├── token             // Token API
+│   │       └── users             // Users API
+│   │
+│   ├── config                    // Configuration files
+│   └── hooks                     // Custom React hooks
 │
-├── public/                # Static files like images, icons, etc.
-├── styles/                # Global CSS/SCSS styles
-│
-├── src/app/               # Main application pages
-│   ├── admin/             # Backoffice pages (/admin/*)
-│   └── page.tsx           # Entry for main application 
-│
-├── components/           # Shared React components
-│   ├── layout/            # Layout components like Header, Sidebar, etc.
-│   └── ui/                # Reusable UI components (buttons, inputs, etc.)
-│
-├── lib/                  # Shared utilities and logic
-│   ├── api/               # API client wrapper, fetch functions
-│   ├── dtos/              # TypeScript interfaces/types for API data
-│   ├── constants.ts       # Global constants
-│   └── helpers.ts         # Utility functions
-│
-├── middleware.ts         # Middleware for auth, logging, etc.
-├── next.config.js        # Next.js config
-├── tsconfig.json         # TypeScript config
-└── package.json
+└── components.json               // shadcn/ui configuration
+```
