@@ -30,10 +30,12 @@ const ApplicationNode = memo(({ data }: ApplicationNodeProps) => {
   if (!applicationTeam) {
     return (
       <BaseNode
-        className={`min-w-32 max-w-64 w-fit transition-opacity duration-200 ${standOut ? "ring-2 ring-primary" : ""} ${isDimmed ? "opacity-40" : ""}`}
+        className={`min-w-32 max-w-64 w-fit transition-all duration-200 ring-2 ring-primary ${standOut ? "ring-4 ring-offset-2 ring-offset-background shadow-2xl shadow-primary/60" : ""} ${isDimmed ? "opacity-40" : ""}`}
       >
         <BaseNodeContent>
-          <h3 className="text-sm font-bold text-center whitespace-nowrap px-2">
+          <h3
+            className={`text-sm font-bold text-center whitespace-nowrap px-2 ${standOut ? "text-primary" : ""}`}
+          >
             {applicationName}
           </h3>
         </BaseNodeContent>
@@ -45,7 +47,7 @@ const ApplicationNode = memo(({ data }: ApplicationNodeProps) => {
 
   return (
     <BaseNode
-      className={`min-w-32 max-w-64 w-fit transition-opacity duration-200 ${standOut ? "ring-2 ring-primary" : ""} ${isDimmed ? "opacity-40" : ""}`}
+      className={`min-w-32 max-w-64 w-fit transition-all duration-200 ring-2 ring-primary ${standOut ? "ring-4 ring-offset-2 ring-offset-background shadow-2xl shadow-primary/60" : ""} ${isDimmed ? "opacity-40" : ""}`}
     >
       <BaseNodeHeader className="border-b flex items-center justify-center space-x-1">
         <Users className="size-4" />
@@ -54,7 +56,9 @@ const ApplicationNode = memo(({ data }: ApplicationNodeProps) => {
         </BaseNodeHeaderTitle>
       </BaseNodeHeader>
       <BaseNodeContent>
-        <h3 className="text-sm font-bold text-center whitespace-nowrap px-2">
+        <h3
+          className={`text-sm font-bold text-center whitespace-nowrap px-2 ${standOut ? "text-primary" : ""}`}
+        >
           {applicationName}
         </h3>
       </BaseNodeContent>
