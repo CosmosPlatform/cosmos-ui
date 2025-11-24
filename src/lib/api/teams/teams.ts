@@ -89,3 +89,21 @@ export async function removeTeamMember(
     { email },
   );
 }
+
+// -----------------------------------------------------------------
+
+export type UpdateTeamRequest = {
+  name?: string;
+  description?: string;
+};
+
+export async function updateTeam(
+  teamName: string,
+  request: UpdateTeamRequest,
+): Promise<ApiResult<null>> {
+  return sendRequestWithAuth<UpdateTeamRequest, null>(
+    "PUT",
+    `/teams/${teamName}`,
+    request,
+  );
+}

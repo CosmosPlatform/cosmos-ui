@@ -32,12 +32,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Plus, Loader2, Trash2, AlertCircle } from "lucide-react";
+import { Plus, Loader2, Trash2, AlertCircle, Pencil } from "lucide-react";
 import {
   createTeam,
   getTeams,
   deleteTeam,
+  updateTeam,
   type CreateTeamRequest,
+  type UpdateTeamRequest,
 } from "@/lib/api/teams/teams";
 import { toast } from "sonner";
 
@@ -58,6 +60,15 @@ export function TeamsManagement() {
     name: "",
     description: "",
   });
+
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [editingTeam, setEditingTeam] = useState<{
+    originalName: string;
+    name: string;
+    description: string;
+  } | null>(null);
+  const [updateTeamError, setUpdateTeamError] = useState<string>("");
 
   useEffect(() => {
     fetchTeams();
@@ -118,6 +129,59 @@ export function TeamsManagement() {
       fetchTeams();
     }
     setDeletingTeam(null);
+  };
+
+  const handleEditTeam = (team: { name: string; description?: string }) => {
+    setEditingTeam({
+      originalName: team.name,
+      name: team.name,
+      description: team.description || "",
+    });
+    setUpdateTeamError("");
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateTeam = async () => {
+    if (!editingTeam) return;
+
+    setUpdateTeamError("");
+
+    if (!editingTeam.name) {
+      setUpdateTeamError("Team name is required");
+      return;
+    }
+
+    setIsUpdating(true);
+
+    const updateRequest: UpdateTeamRequest = {};
+    if (editingTeam.name !== editingTeam.originalName) {
+      updateRequest.name = editingTeam.name;
+    }
+    if (editingTeam.description) {
+      updateRequest.description = editingTeam.description;
+    }
+
+    const result = await updateTeam(editingTeam.originalName, updateRequest);
+    if (result.error) {
+      console.error("Error updating team:", result.error);
+      setUpdateTeamError(result.error.error || "Failed to update team");
+    } else {
+      toast.success("Team updated successfully");
+      setEditingTeam(null);
+      setUpdateTeamError("");
+      setIsEditDialogOpen(false);
+      fetchTeams();
+    }
+
+    setIsUpdating(false);
+  };
+
+  const handleEditDialogClose = (open: boolean) => {
+    if (!open) {
+      setUpdateTeamError("");
+      setEditingTeam(null);
+    }
+    setIsEditDialogOpen(open);
   };
 
   return (
@@ -202,45 +266,115 @@ export function TeamsManagement() {
                 <TableCell className="font-medium">{team.name}</TableCell>
                 <TableCell>{team.description || "No description"}</TableCell>
                 <TableCell>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        disabled={deletingTeam === team.name}
-                      >
-                        {deletingTeam === team.name ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Team</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete the team "{team.name}
-                          "? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDeleteTeam(team.name)}
-                          className="bg-destructive hover:bg-destructive/90"
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditTeam(team)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={deletingTeam === team.name}
                         >
-                          Delete Team
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                          {deletingTeam === team.name ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Team</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete the team "
+                            {team.name}
+                            "? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteTeam(team.name)}
+                            className="bg-destructive hover:bg-destructive/90"
+                          >
+                            Delete Team
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       )}
+
+      <Dialog open={isEditDialogOpen} onOpenChange={handleEditDialogClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Team</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6">
+            {updateTeamError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{updateTeamError}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="space-y-3">
+              <Label htmlFor="editTeamName">Team Name</Label>
+              <Input
+                id="editTeamName"
+                value={editingTeam?.name || ""}
+                onChange={(e) =>
+                  setEditingTeam(
+                    editingTeam
+                      ? { ...editingTeam, name: e.target.value }
+                      : null,
+                  )
+                }
+                placeholder="Enter team name"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="editTeamDescription">
+                Description (Optional)
+              </Label>
+              <Textarea
+                id="editTeamDescription"
+                value={editingTeam?.description || ""}
+                onChange={(e) =>
+                  setEditingTeam(
+                    editingTeam
+                      ? { ...editingTeam, description: e.target.value }
+                      : null,
+                  )
+                }
+                placeholder="Enter team description"
+                rows={3}
+              />
+            </div>
+
+            <Button
+              onClick={handleUpdateTeam}
+              disabled={isUpdating}
+              className="w-full"
+            >
+              {isUpdating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Update Team
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
