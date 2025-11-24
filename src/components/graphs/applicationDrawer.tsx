@@ -17,6 +17,7 @@ import {
 } from "@/lib/api/monitoring/monitoring";
 import { Loader2, FileCode, Users, Box } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import Link from "next/link";
 
 interface ApplicationDrawerProps {
   isOpen: boolean;
@@ -75,9 +76,14 @@ export default function ApplicationDrawer({
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Box className="h-5 w-5" />
-            {monitoringData?.application.name ||
-              applicationName ||
-              "Application"}
+            <Link
+              href={`/applications/${applicationName}`}
+              className="hover:underline hover:text-primary transition-colors"
+            >
+              {monitoringData?.application.name ||
+                applicationName ||
+                "Application"}
+            </Link>
           </SheetTitle>
           <SheetDescription>
             {monitoringData?.application.description ||
