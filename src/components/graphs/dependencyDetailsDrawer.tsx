@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
-import { ArrowRight, Globe, Zap } from "lucide-react";
+import { ArrowRight, Globe, Workflow } from "lucide-react";
 import {
   ApplicationDependency,
   ApplicationInformation,
@@ -44,7 +44,7 @@ export default function DependencyDetailsDrawer({
       <SheetContent className="w-[400px] sm:w-[540px]">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
+            <Workflow className="h-5 w-5" />
             Dependency Details
           </SheetTitle>
           <SheetDescription>
